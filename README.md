@@ -1,5 +1,7 @@
 # Wordup FE
 
+NOTE: This project is currently in development
+
 ## Description
 
 A conlang word generator

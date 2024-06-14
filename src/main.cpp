@@ -56,7 +56,8 @@ int main() {
 
         if (!fileName.has_value()) {
             // Need to open a file first
-            ImGui::Begin("Open File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+            ImGui::Begin("Choose File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
             if (ImGui::Button("New File")) {
                 createNewFile = true;
             }
@@ -64,6 +65,8 @@ int main() {
             if (ImGui::Button("Open File")) {
                 openFile = true;
             }
+
+            ImGui::End();
 
             if (createNewFile) {
                 ImGui::OpenPopup("Save File");
@@ -95,7 +98,7 @@ int main() {
             }
 
             if (fileDialog.showFileDialog(
-                "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT,
+                "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
                 ImVec2(g_width, g_height), ".wu"
             )) {
                 openFile = false;
@@ -119,22 +122,20 @@ int main() {
                 // Cancel
                 openFile = false;
             }
-
-            ImGui::End();
         } else {
             // Show the currently opened file and a button to close it
             ImGui::Begin(
                 " ", nullptr,
                 ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize
             );
-            ImGui::BeginMenuBar();
             ImGui::Text("Opened: %s", fileName.value().c_str());
+            ImGui::SameLine();
             bool closeFile = false;
             if (ImGui::Button("Close File")) {
                 closeFile = true;
             }
-            ImGui::EndMenuBar();
             ImGui::End();
+
             if (closeFile) {
                 fileName.reset();
                 gen.reset();

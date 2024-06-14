@@ -17,9 +17,10 @@ HFILES :=		$(wildcard include/*.hpp)
 ## Compiler
 
 CPPC :=			g++
-CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror -Iinclude -Inatevolve-ark/include
+CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
+				-Iinclude -Inatevolve-ark/include $(shell pkg-config --cflags gtk4)
 LD :=			g++
-LDFLAGS :=		-Lnatevolve-ark -lnatevolve
+LDFLAGS :=		-Lnatevolve-ark -lnatevolve $(shell pkg-config --libs gtk4)
 
 # Targets
 

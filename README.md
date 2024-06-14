@@ -24,7 +24,8 @@ Dependencies:
 
 - gcc
 - make
-- OpenGL
+- Gtk4
+- pkg-config
 
 Run `make`
 

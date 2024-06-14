@@ -15,6 +15,73 @@
 #include <subwin.hpp>
 #include <state.hpp>
 
+#define IPA_CONS_NCOLS      11
+#define IPA_CONS_NROWS      12
+
+static const ImVec2 canClosePos(60, 60);
+static const ImVec2 inventoryPos(60, 150);
+static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
+    "Bilab", "Labden", "Den", "Alv", "Post-Alv",
+    "Rflex", "Palt", "Vel", "Uv", "Pharyn",
+    "Glot"
+};
+static const char *ipaConsRowHdrs[IPA_CONS_NROWS] = {
+    "Stop", "Nas", "Trill", "Tap", "Fric", "Lat Fric", "Affr",
+    "Approx", "Lat Approx", "Impl", "Click", "Eject"
+};
+static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
+    {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" }
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" },
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" },
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" },
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" },
+    }, {
+        { L"p", L"b" }, { L"", L"" }, { L"t̪", L"d̪" }, { L"t", L"d" }, { L"t̺", L"d̺" },
+        { L"ʈ", L"ɖ" }, { L"c", L"ɟ" }, { L"k", L"g" }, { L"q", L"ɢ" }, { L"", L"" },
+        { L"ʔ", L"" },
+    }
+};
+static const std::wstring ipaConsExtra[] = { L"w" };
+
 void subwin::errorPopup(AppState &state) {
     ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     if (state.errMessage.has_value()) {
@@ -120,10 +187,29 @@ void subwin::fileOpenedCanClose(AppState &state) {
 }
 
 void subwin::ipaSelect(AppState &state) {
-    ImGui::Begin("Inventory");
+    ImGui::Begin("Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::SetWindowPos(inventoryPos);
 
-    ImGui::Selectable("p");
+    ImGui::BeginTable("Consonants", IPA_CONS_NCOLS + 1);
+
+    ImGui::TableNextColumn();
+    ImGui::Text(" ");
+    for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", ipaConsColHdrs[col]);
+    }
+    for (size_t row = 0; row < IPA_CONS_NROWS; row++) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", ipaConsRowHdrs[row]);
+        for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
+            ImGui::TableNextColumn();
+            ImGui::Text("%ls", ipaConsTbl[row][col][0]);
+            ImGui::TableNextColumn();
+            ImGui::Text("%ls", ipaConsTbl[row][col][0]);
+        }
+    }
+    ImGui::EndTable();
 
     ImGui::End();
 }

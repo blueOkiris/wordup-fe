@@ -2,15 +2,13 @@
 
 #pragma once
 
+#include <string>
 #include <optional>
 #include <natevolve.hpp>
 #include <wordup.hpp>
 #include <state.hpp>
 
 namespace subwin {
-    static const ImVec2 canClosePos(60, 60);
-    static const ImVec2 inventoryPos(60, 150);
-
     // Show a popup with an error message
     void errorPopup(AppState &state);
 

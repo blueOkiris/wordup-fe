@@ -28,5 +28,7 @@ Dependencies:
 - pkg-config
 - SFML
 
+Update the submodules: `git submodule update --init --recursive`
+
 Run `make`
 

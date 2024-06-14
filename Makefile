@@ -40,21 +40,17 @@ clean:
 ## Main
 
 libnatevolve.a:
-	git submodule update --init --recursive
 	$(MAKE) -C natevolve-ark
 
 obj/%.o: src/%.cpp $(HFILES)
-	git submodule update --init --recursive
 	mkdir -p obj
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 obj/%.o: imgui/%.cpp $(HFILES)
-	git submodule update --init --recursive
 	mkdir -p obj
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 obj/%.o: imgui-sfml/%.cpp $(HFILES)
-	git submodule update --init --recursive
 	mkdir -p obj
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 

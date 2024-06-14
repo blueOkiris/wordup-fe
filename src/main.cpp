@@ -122,7 +122,27 @@ int main() {
 
             ImGui::End();
         } else {
-
+            // Show the currently opened file and a button to close it
+            ImGui::Begin(
+                " ", nullptr,
+                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize
+            );
+            ImGui::BeginMenuBar();
+            ImGui::Text("Opened: %s", fileName.value().c_str());
+            bool closeFile = false;
+            if (ImGui::Button("Close File")) {
+                closeFile = true;
+            }
+            ImGui::EndMenuBar();
+            ImGui::End();
+            if (closeFile) {
+                fileName.reset();
+                gen.reset();
+                win.clear();
+                ImGui::SFML::Render(win);
+                win.display();
+                continue;
+            }
         }
 
         win.clear();

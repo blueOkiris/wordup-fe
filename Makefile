@@ -20,7 +20,8 @@ HFILES :=		$(wildcard include/*.hpp)
 
 CPPC :=			g++
 CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
-				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml
+				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml \
+				$(shell pkg-config --cflags sfml-all)
 LD :=			g++
 LDFLAGS :=		-Lnatevolve-ark -lnatevolve $(shell pkg-config --libs sfml-all) -lGL
 

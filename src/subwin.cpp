@@ -1,9 +1,10 @@
 // Implement subwindow functionality
 
 #include <optional>
-#include <imgui.h>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <imgui.h>
 #include <imgui-SFML.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
@@ -188,7 +189,11 @@ void subwin::fileOpenedCanClose(AppState &state) {
 
 void subwin::ipaSelect(AppState &state) {
     ImGui::Begin("Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SetWindowPos(inventoryPos);
+
+    if (!std::filesystem::exists("imgui.ini")) {
+        // Give it a non-overlapping default pos
+        ImGui::SetWindowPos(inventoryPos);
+    }
 
     ImGui::BeginTable("Consonants", IPA_CONS_NCOLS + 1);
 

@@ -1,6 +1,9 @@
 *.a
 *.bin
+*.exe
 *.o
 *.ini
 *.wu
+SFML/
+*.dll
 

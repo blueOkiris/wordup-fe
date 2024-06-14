@@ -25,12 +25,16 @@ There are three tabs:
 Dependencies:
 
 - gcc
-- make
+- make (mingw32-make on Windows)
 - OpenGL
-- pkg-config
-- SFML
+- pkg-config (Linux Only)
+- [SFML < 3.0](https://www.sfml-dev.org/download/sfml/2.6.1/)
+   + Windows users have to download the source bc of the lack of package manager and annoyance of building from source
+      1. Download and extract the root folder (the one with `lib/`, `bin/`, and `include/`) into an "SFML/" folder (i.e. there should be an SFML/include/ folder in the repo root directory)
+      2. Copy all the `.dll`s from SFML/bin/ to the root repo directory
+      3. Build like normal
 
 Update the submodules: `git submodule update --init --recursive`
 
-Run `make`
+Run `make` (or `mingw32-make` on Windows)
 

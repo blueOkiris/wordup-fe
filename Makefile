@@ -20,11 +20,23 @@ HFILES :=		$(wildcard include/*.hpp)
 ## Compiler
 
 CPPC :=			g++
+ifeq ($(OS), Windows_NT)
+CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
+				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml -IImGui-Addons/FileBrowser \
+				-ISFML/include
+else
 CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
 				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml -IImGui-Addons/FileBrowser \
 				$(shell pkg-config --cflags sfml-all)
+endif
 LD :=			g++
-LDFLAGS :=		-Lnatevolve-ark -lnatevolve $(shell pkg-config --libs sfml-all) -lGL
+ifeq ($(OS), Windows_NT)
+LDFLAGS :=		-Lnatevolve-ark -LSFML/lib -lnatevolve -lopengl32 \
+				-lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
+else
+LDFLAGS :=		-Lnatevolve-ark -lnatevolve -lGL \
+				$(shell pkg-config --libs sfml-all)
+endif
 
 # Targets
 
@@ -45,19 +57,35 @@ natevolve-ark/libnatevolve.a:
 	$(MAKE) -C natevolve-ark
 
 obj/%.o: src/%.cpp $(HFILES)
+ifeq ($(OS), Windows_NT)
+	-mkdir obj
+else
 	mkdir -p obj
+endif
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 obj/%.o: imgui/%.cpp $(HFILES)
+ifeq ($(OS), Windows_NT)
+	-mkdir obj
+else
 	mkdir -p obj
+endif
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 obj/%.o: imgui-sfml/%.cpp $(HFILES)
+ifeq ($(OS), Windows_NT)
+	-mkdir obj
+else
 	mkdir -p obj
+endif
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 obj/%.o: ImGui-Addons/FileBrowser/%.cpp $(HFILES)
+ifeq ($(OS), Windows_NT)
+	-mkdir obj
+else
 	mkdir -p obj
+endif
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
 $(OBJNAME): $(OBJS) natevolve-ark/libnatevolve.a

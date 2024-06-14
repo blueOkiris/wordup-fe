@@ -172,7 +172,9 @@ void subwin::fileOpen(AppState &state) {
 
 void subwin::fileOpenedCanClose(AppState &state) {
     ImGui::Begin("Current File Opened", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SetWindowPos(canClosePos);
+    if (!std::filesystem::exists("imgui.ini")) {
+        ImGui::SetWindowPos(canClosePos);
+    }
     ImGui::Text("Name: %s", state.fileName.value().c_str());
     ImGui::SameLine();
     bool closeFile = false;

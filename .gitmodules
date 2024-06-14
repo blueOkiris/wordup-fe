@@ -1,3 +1,9 @@
 [submodule "natevolve-ark"]
 	path = natevolve-ark
 	url = https://github.com/blueOkiris/natevolve-ark
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui/
+[submodule "imgui-sfml"]
+	path = imgui-sfml
+	url = https://github.com/SFML/imgui-sfml

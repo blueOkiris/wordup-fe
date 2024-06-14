@@ -1,41 +1,54 @@
 // Entry point for Wordup-FE
 
-#include <gtk/gtk.h>
+#include <iostream>
+#include <imgui.h>
+#include <imgui-SFML.h>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Event.hpp>
 
+static const size_t g_width = 1280;
+static const size_t g_height = 720;
 static const char *const g_title = "Wordup FE";
-static const size_t g_winWidth = 1280;
-static const size_t g_winHeight = 720;
+static const int g_fps = 200;
 
-static void appOnActivate(GtkApplication *app, gpointer user_data);
-static void btnOnCloseClicked(GtkButton *button, gpointer window);
+int main() {
+    sf::RenderWindow win(sf::VideoMode(g_width, g_height), g_title);
+    win.setFramerateLimit(g_fps);
+    if (!ImGui::SFML::Init(win)) {
+        std::cout << "Failed to init SFML." << std::endl;
+    }
+    win.resetGLStates();
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseDrawCursor = true;
 
-int main(int argc, char **argv) {
-    auto app = gtk_application_new("net.polymath-studio.wordup-fe", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(appOnActivate), nullptr);
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
-    return status;
-}
+    sf::Clock deltaClock;
+    while (win.isOpen()) {
+        sf::Event event;
+        while (win.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(win, event);
+            switch (event.type) {
+                case sf::Event::Closed:
+                    win.close();
+                    break;
+                default:
+                    break;
+            }
+        }
 
-// Function to initialize the application
-static void appOnActivate(GtkApplication *app, gpointer user_data) {
-    // Create a new window
-    GtkWidget *window = gtk_application_window_new(app);
-    gtk_window_set_title(GTK_WINDOW(window), g_title);
-    gtk_window_set_default_size(GTK_WINDOW(window), g_winWidth, g_winHeight);
+        ImGui::SFML::Update(win, deltaClock.restart());
 
-    // Create a button
-    GtkWidget *button = gtk_button_new_with_label("Close");
-    g_signal_connect(button, "clicked", G_CALLBACK(btnOnCloseClicked), window);
+        ImGui::Begin("Hello, world!");
+        ImGui::Button("Look at this pretty button");
+        ImGui::End();
 
-    // Add the button to the window
-    gtk_window_set_child(GTK_WINDOW(window), button);
+        win.clear();
+        ImGui::SFML::Render(win);
+        win.display();
+    }
 
-    // Show the window and all its children
-    gtk_widget_set_visible(window, true);
-}
-
-static void btnOnCloseClicked(GtkButton *button, gpointer window) {
-    gtk_window_close(GTK_WINDOW(window));
+    ImGui::SFML::Shutdown();
+    return 0;
 }
 

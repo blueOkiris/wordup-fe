@@ -2,7 +2,8 @@
 
 let
     buildLibs = with pkgs; (with xorg; [
-        gtk4
+        sfml
+        libGL
     ]);
 in with pkgs; mkShell {
     buildInputs = [

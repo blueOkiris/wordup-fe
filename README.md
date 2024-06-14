@@ -24,8 +24,9 @@ Dependencies:
 
 - gcc
 - make
-- Gtk4
+- OpenGL
 - pkg-config
+- SFML
 
 Run `make`
 

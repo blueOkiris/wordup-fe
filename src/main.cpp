@@ -20,8 +20,10 @@ static const int g_fps = 60;
 
 static void initSys(sf::RenderWindow &win);
 static void handleEvents(sf::RenderWindow &win, sf::Event &ev);
+static void subwinErrorPopup(sf::RenderWindow &win, std::optional<std::wstring> &errMessage);
 static void subwinFileOpen(
     sf::RenderWindow &win,
+    std::optional<std::wstring> &errMessage,
     std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
     imgui_addons::ImGuiFileBrowser &fileDialog, bool &spawnNewFilePopup, bool &spawnOpenFilePopup
 );
@@ -32,10 +34,13 @@ static bool subwinFileOpenedCanClose(
 
 int main() {
     // -------- App State --------
+
     sf::RenderWindow win(sf::VideoMode(g_width, g_height), g_title);
 
-    std::optional<std::string> fileName;
-    std::optional<natevolve::wordup::Generator> gen;
+    std::optional<std::wstring> errMessage = std::nullopt;
+
+    std::optional<std::string> fileName = std::nullopt;
+    std::optional<natevolve::wordup::Generator> gen = std::nullopt;
 
     imgui_addons::ImGuiFileBrowser fileDialog;
     bool spawnNewFilePopup = false;
@@ -43,7 +48,8 @@ int main() {
 
     initSys(win);
 
-    // Main loop
+    // -------- Main loop --------
+
     sf::Clock deltaClock;
     while (win.isOpen()) {
         sf::Event event;
@@ -54,8 +60,15 @@ int main() {
 
         ImGui::SFML::Update(win, deltaClock.restart());
 
-        if (!fileName.has_value()) {
-            subwinFileOpen(win, fileName, gen, fileDialog, spawnNewFilePopup, spawnOpenFilePopup);
+        if (errMessage.has_value()) {
+            subwinErrorPopup(win, errMessage);
+        } else if (!fileName.has_value()) {
+            subwinFileOpen(
+                win,
+                errMessage,
+                fileName, gen,
+                fileDialog, spawnNewFilePopup, spawnOpenFilePopup
+            );
         } else {
             if (subwinFileOpenedCanClose(win, fileName, gen)) {
                 win.clear();
@@ -97,9 +110,22 @@ static void handleEvents(sf::RenderWindow &win, sf::Event &ev) {
     }
 }
 
+// Show a popup with an error message
+static void subwinErrorPopup(sf::RenderWindow &win, std::optional<std::wstring> &errMessage) {
+    ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (errMessage.has_value()) {
+        ImGui::Text("Error: %ls\n", errMessage.value().c_str());
+        if (ImGui::Button("Close")) {
+            errMessage.reset();
+        }
+    }
+    ImGui::End();
+}
+
 // Show a window that lets you open files or create a new one
 static void subwinFileOpen(
         sf::RenderWindow &win,
+        std::optional<std::wstring> &errMessage,
         std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
         imgui_addons::ImGuiFileBrowser &fileDialog,
         bool &spawnNewFilePopup, bool &spawnOpenFilePopup) {
@@ -141,7 +167,10 @@ static void subwinFileOpen(
             fileName.emplace(fileDialog.selected_fn);
             gen.emplace(defGen);
         } else {
-            std::cout << "Todo: Implement errors" << std::endl;
+            errMessage.emplace(
+                L"Failed to save new file '" + natevolve::toWstr(fileDialog.selected_fn)
+                    + L"'\nErr: " + saveRes.value().message
+            );
         }
     }
 
@@ -158,7 +187,10 @@ static void subwinFileOpen(
             fileName.emplace(fileDialog.selected_fn);
             gen.emplace(natevolve::ok(readGen));
         } else {
-            std::cout << "Todo: Implement errors" << std::endl;
+            errMessage.emplace(
+                L"Failed to open file '" + natevolve::toWstr(fileDialog.selected_fn)
+                    + L"'\nErr: " + natevolve::err(readGen).message
+            );
         }
     }
 

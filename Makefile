@@ -31,7 +31,7 @@ CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
 endif
 LD :=			g++
 ifeq ($(OS), Windows_NT)
-LDFLAGS :=		-Lnatevolve-ark -LSFML/lib -lnatevolve -lopengl32 \
+LDFLAGS :=		-mwindows -Lnatevolve-ark -LSFML/lib -lnatevolve -lopengl32 \
 				-lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
 else
 LDFLAGS :=		-Lnatevolve-ark -lnatevolve -lGL \

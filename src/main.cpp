@@ -18,24 +18,30 @@ static const size_t g_height = 720;
 static const char *const g_title = "Wordup FE";
 static const int g_fps = 60;
 
-int main() {
-    // Initialize SFML and ImGui and various other tools and settings
-    sf::RenderWindow win(sf::VideoMode(g_width, g_height), g_title);
-    win.setFramerateLimit(g_fps);
-    if (!ImGui::SFML::Init(win)) {
-        std::cout << "Failed to init SFML." << std::endl;
-    }
-    win.resetGLStates();
-    ImGuiIO& io = ImGui::GetIO();
-    io.MouseDrawCursor = false;
-    natevolve::enableUtf8();
+static void initSys(sf::RenderWindow &win);
+static void handleEvents(sf::RenderWindow &win, sf::Event &ev);
+static void subwinFileOpen(
+    sf::RenderWindow &win,
+    std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
+    imgui_addons::ImGuiFileBrowser &fileDialog, bool &spawnNewFilePopup, bool &spawnOpenFilePopup
+);
+static bool subwinFileOpenedCanClose(
+    sf::RenderWindow &win,
+    std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen
+);
 
-    // Initialize app state
-    imgui_addons::ImGuiFileBrowser fileDialog;
-    std::optional<natevolve::wordup::Generator> gen;
+int main() {
+    // -------- App State --------
+    sf::RenderWindow win(sf::VideoMode(g_width, g_height), g_title);
+
     std::optional<std::string> fileName;
-    bool createNewFile = false;
-    bool openFile = false;
+    std::optional<natevolve::wordup::Generator> gen;
+
+    imgui_addons::ImGuiFileBrowser fileDialog;
+    bool spawnNewFilePopup = false;
+    bool spawnOpenFilePopup = false;
+
+    initSys(win);
 
     // Main loop
     sf::Clock deltaClock;
@@ -43,102 +49,15 @@ int main() {
         sf::Event event;
         while (win.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(win, event);
-            switch (event.type) {
-                case sf::Event::Closed:
-                    win.close();
-                    break;
-                default:
-                    break;
-            }
+            handleEvents(win, event);
         }
 
         ImGui::SFML::Update(win, deltaClock.restart());
 
         if (!fileName.has_value()) {
-            // Need to open a file first
-            ImGui::Begin("Choose File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-            if (ImGui::Button("New File")) {
-                createNewFile = true;
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Open File")) {
-                openFile = true;
-            }
-
-            ImGui::End();
-
-            if (createNewFile) {
-                ImGui::OpenPopup("Save File");
-            }
-            if (openFile) {
-                ImGui::OpenPopup("Open File");
-            }
-
-            if (fileDialog.showFileDialog(
-                "Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
-                ImVec2(g_width, g_height), ".wu"
-            )) {
-                createNewFile = false;
-
-                std::map<std::wstring, std::vector<std::wstring>> defCats;
-                std::vector<std::wstring> defVwls;
-                std::vector<std::vector<std::wstring>> defOnsets;
-                std::vector<std::vector<std::wstring>> defCodas;
-                const natevolve::wordup::Generator defGen(
-                    defCats, defVwls, defOnsets, defCodas
-                );
-                const auto saveRes = defGen.toFile(fileDialog.selected_fn.c_str());
-                if (!saveRes.has_value()) {
-                    fileName.emplace(fileDialog.selected_fn);
-                    gen.emplace(defGen);
-                } else {
-                    std::cout << "Todo: Implement errors" << std::endl;
-                }
-            }
-
-            if (fileDialog.showFileDialog(
-                "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
-                ImVec2(g_width, g_height), ".wu"
-            )) {
-                openFile = false;
-                const auto readGen = natevolve::wordup::Generator::fromFile(
-                    fileDialog.selected_fn.c_str()
-                );
-
-                if (!natevolve::isErr(readGen)) {
-                    fileName.emplace(fileDialog.selected_fn);
-                    gen.emplace(natevolve::ok(readGen));
-                } else {
-                    std::cout << "Todo: Implement errors" << std::endl;
-                }
-            }
-
-            if (!ImGui::IsPopupOpen("New File")) {
-                // Cancel
-                createNewFile = false;
-            }
-            if (!ImGui::IsPopupOpen("Open File")) {
-                // Cancel
-                openFile = false;
-            }
+            subwinFileOpen(win, fileName, gen, fileDialog, spawnNewFilePopup, spawnOpenFilePopup);
         } else {
-            // Show the currently opened file and a button to close it
-            ImGui::Begin(
-                " ", nullptr,
-                ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize
-            );
-            ImGui::Text("Opened: %s", fileName.value().c_str());
-            ImGui::SameLine();
-            bool closeFile = false;
-            if (ImGui::Button("Close File")) {
-                closeFile = true;
-            }
-            ImGui::End();
-
-            if (closeFile) {
-                fileName.reset();
-                gen.reset();
+            if (subwinFileOpenedCanClose(win, fileName, gen)) {
                 win.clear();
                 ImGui::SFML::Render(win);
                 win.display();
@@ -153,5 +72,130 @@ int main() {
 
     ImGui::SFML::Shutdown();
     return 0;
+}
+
+// Initialize SFML and ImGui and various other tools and settings
+static void initSys(sf::RenderWindow &win) {
+    win.setFramerateLimit(g_fps);
+    if (!ImGui::SFML::Init(win)) {
+        std::cout << "Failed to init SFML." << std::endl;
+    }
+    win.resetGLStates();
+    ImGuiIO& io = ImGui::GetIO();
+    io.MouseDrawCursor = false;
+    natevolve::enableUtf8();
+}
+
+// Handle things like resize and close
+static void handleEvents(sf::RenderWindow &win, sf::Event &ev) {
+    switch (ev.type) {
+        case sf::Event::Closed:
+            win.close();
+            break;
+        default:
+            break;
+    }
+}
+
+// Show a window that lets you open files or create a new one
+static void subwinFileOpen(
+        sf::RenderWindow &win,
+        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
+        imgui_addons::ImGuiFileBrowser &fileDialog,
+        bool &spawnNewFilePopup, bool &spawnOpenFilePopup) {
+    // Need to open a file first
+    ImGui::Begin("Choose File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+
+    if (ImGui::Button("New File")) {
+        spawnNewFilePopup = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Open File")) {
+        spawnOpenFilePopup = true;
+    }
+
+    ImGui::End();
+
+    if (spawnNewFilePopup) {
+        ImGui::OpenPopup("Save File");
+    }
+    if (spawnOpenFilePopup) {
+        ImGui::OpenPopup("Open File");
+    }
+
+    if (fileDialog.showFileDialog(
+        "Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
+        ImVec2(g_width, g_height), ".wu"
+    )) {
+        spawnNewFilePopup = false;
+
+        std::map<std::wstring, std::vector<std::wstring>> defCats;
+        std::vector<std::wstring> defVwls;
+        std::vector<std::vector<std::wstring>> defOnsets;
+        std::vector<std::vector<std::wstring>> defCodas;
+        const natevolve::wordup::Generator defGen(
+            defCats, defVwls, defOnsets, defCodas
+        );
+        const auto saveRes = defGen.toFile(fileDialog.selected_fn.c_str());
+        if (!saveRes.has_value()) {
+            fileName.emplace(fileDialog.selected_fn);
+            gen.emplace(defGen);
+        } else {
+            std::cout << "Todo: Implement errors" << std::endl;
+        }
+    }
+
+    if (fileDialog.showFileDialog(
+        "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
+        ImVec2(g_width, g_height), ".wu"
+    )) {
+        spawnOpenFilePopup = false;
+        const auto readGen = natevolve::wordup::Generator::fromFile(
+            fileDialog.selected_fn.c_str()
+        );
+
+        if (!natevolve::isErr(readGen)) {
+            fileName.emplace(fileDialog.selected_fn);
+            gen.emplace(natevolve::ok(readGen));
+        } else {
+            std::cout << "Todo: Implement errors" << std::endl;
+        }
+    }
+
+    if (!ImGui::IsPopupOpen("New File")) {
+        // Cancel
+        spawnNewFilePopup = false;
+    }
+    if (!ImGui::IsPopupOpen("Open File")) {
+        // Cancel
+        spawnOpenFilePopup = false;
+    }
+}
+
+
+// Show the currently opened file and a button to close it
+static bool subwinFileOpenedCanClose(
+        sf::RenderWindow &win,
+        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen) {
+    ImGui::Begin(
+        "Current File Opened", nullptr,
+        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize
+    );
+    ImGui::Text("Name: %s", fileName.value().c_str());
+    ImGui::SameLine();
+    bool closeFile = false;
+    if (ImGui::Button("Close File")) {
+        closeFile = true;
+    }
+    ImGui::End();
+
+    if (closeFile) {
+        fileName.reset();
+        gen.reset();
+        win.clear();
+        ImGui::SFML::Render(win);
+        win.display();
+    }
+    return !closeFile;
 }
 

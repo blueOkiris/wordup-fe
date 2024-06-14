@@ -1,7 +1,6 @@
-# Objects
-
 *.a
 *.bin
 *.o
 *.ini
+*.wu
 

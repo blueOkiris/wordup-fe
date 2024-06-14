@@ -44,6 +44,7 @@ libnatevolve.a:
 	$(MAKE) -C natevolve-ark
 
 obj/%.o: src/%.cpp $(HFILES)
+	git submodule update --init --recursive
 	mkdir -p obj
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 

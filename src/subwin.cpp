@@ -1,5 +1,6 @@
 // Implement subwindow functionality
 
+#include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
@@ -22,13 +23,13 @@
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 150);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
-    "Bilab", "Labden", "Den", "Alv", "Post-Alv",
-    "Rflex", "Palt", "Vel", "Uv", "Pharyn",
-    "Glot"
+    "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
+    "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",
+    "Glottl"
 };
 static const char *ipaConsRowHdrs[IPA_CONS_NROWS] = {
-    "Stop", "Nas", "Trill", "Tap", "Fric", "Lat Fric", "Affr",
-    "Approx", "Lat Approx", "Impl", "Click", "Eject"
+    "Stop", "Nasal", "Trill", "Tap", "Frictv", "Lat Fric", "Affr",
+    "Approx", "Lat Apx", "Implosv", "Click", "Ejectv"
 };
 static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
     {
@@ -177,6 +178,8 @@ void subwin::fileOpenedCanClose(AppState &state) {
     }
     ImGui::Text("Name: %s", state.fileName.value().c_str());
     ImGui::SameLine();
+    ImGui::Separator();
+    ImGui::SameLine();
     bool closeFile = false;
     if (ImGui::Button("Close File")) {
         closeFile = true;
@@ -190,14 +193,19 @@ void subwin::fileOpenedCanClose(AppState &state) {
 }
 
 void subwin::ipaSelect(AppState &state) {
-    ImGui::Begin("Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin(
+        "Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse
+    );
 
     if (!std::filesystem::exists("imgui.ini")) {
         // Give it a non-overlapping default pos
         ImGui::SetWindowPos(inventoryPos);
     }
 
-    ImGui::BeginTable("Consonants", IPA_CONS_NCOLS + 1);
+    ImGui::BeginTable(
+        "Consonants", IPA_CONS_NCOLS + 1,
+        ImGuiTableFlags_Borders
+    );
 
     ImGui::TableNextColumn();
     ImGui::Text(" ");
@@ -209,12 +217,21 @@ void subwin::ipaSelect(AppState &state) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("%s", ipaConsRowHdrs[row]);
+        ImGui::PushFont(global::fontCharisSil);
         for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
             ImGui::TableNextColumn();
-            ImGui::Text("%ls", ipaConsTbl[row][col][0]);
-            ImGui::TableNextColumn();
-            ImGui::Text("%ls", ipaConsTbl[row][col][0]);
+            if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
+                ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str());
+            } else {
+                ImGui::Text(" ");
+            }
+            if (ipaConsTbl[row][col][1] != std::wstring(L"")) {
+                ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str());
+            } else {
+                ImGui::Text(" ");
+            }
         }
+        ImGui::PopFont();
     }
     ImGui::EndTable();
 

@@ -5,19 +5,22 @@
 #include <optional>
 #include <natevolve.hpp>
 #include <wordup.hpp>
+#include <state.hpp>
 
 namespace subwin {
-    void errorPopup(sf::RenderWindow &win, std::optional<std::wstring> &errMessage);
-    void fileOpen(
-        sf::RenderWindow &win,
-        std::optional<std::wstring> &errMessage,
-        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
-        imgui_addons::ImGuiFileBrowser &fileDialog,
-        bool &spawnNewFilePopup, bool &spawnOpenFilePopup
-    );
-    bool fileOpenedCanClose(
-        sf::RenderWindow &win,
-        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen
-    );
+    static const ImVec2 canClosePos(60, 60);
+    static const ImVec2 inventoryPos(60, 150);
+
+    // Show a popup with an error message
+    void errorPopup(AppState &state);
+
+    // Show a window that lets you open files or create a new one
+    void fileOpen(AppState &state);
+
+    // Show the currently opened file and a button to close it
+    void fileOpenedCanClose(AppState &state);
+
+    // Show a table with selectable IPA flags
+    void ipaSelect(AppState &state);
 }
 

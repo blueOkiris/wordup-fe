@@ -36,5 +36,5 @@ Dependencies:
 
 Update the submodules: `git submodule update --init --recursive`
 
-Run `make` (or `mingw32-make` on Windows)
+Run `make -j<num cpu processors>` (or `mingw32-make` on Windows)
 

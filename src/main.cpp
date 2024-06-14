@@ -14,59 +14,44 @@
 #include <wordup.hpp>
 #include <global.hpp>
 #include <subwin.hpp>
+#include <state.hpp>
 
-static void initSys(sf::RenderWindow &win);
-static void handleEvents(sf::RenderWindow &win, sf::Event &ev);
+static void initSys(AppState &state);
+static void handleEvents(AppState &state, sf::Event &ev);
 
 int main() {
-    // -------- App State --------
+    AppState state;
 
-    sf::RenderWindow win(sf::VideoMode(global::width, global::height), global::title);
-
-    std::optional<std::wstring> errMessage = std::nullopt;
-
-    std::optional<std::string> fileName = std::nullopt;
-    std::optional<natevolve::wordup::Generator> gen = std::nullopt;
-
-    imgui_addons::ImGuiFileBrowser fileDialog;
-    bool spawnNewFilePopup = false;
-    bool spawnOpenFilePopup = false;
-
-    initSys(win);
+    initSys(state);
 
     // -------- Main loop --------
 
     sf::Clock deltaClock;
-    while (win.isOpen()) {
+    while (state.win.isOpen()) {
         sf::Event event;
-        while (win.pollEvent(event)) {
-            ImGui::SFML::ProcessEvent(win, event);
-            handleEvents(win, event);
+        while (state.win.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(state.win, event);
+            handleEvents(state, event);
         }
 
-        ImGui::SFML::Update(win, deltaClock.restart());
+        ImGui::SFML::Update(state.win, deltaClock.restart());
 
-        if (errMessage.has_value()) {
-            subwin::errorPopup(win, errMessage);
-        } else if (!fileName.has_value()) {
-            subwin::fileOpen(
-                win,
-                errMessage,
-                fileName, gen,
-                fileDialog, spawnNewFilePopup, spawnOpenFilePopup
-            );
+        if (state.errMessage.has_value()) {
+            subwin::errorPopup(state);
+        } else if (!state.fileName.has_value()) {
+            subwin::fileOpen(state);
         } else {
-            if (subwin::fileOpenedCanClose(win, fileName, gen)) {
-                win.clear();
-                ImGui::SFML::Render(win);
-                win.display();
-                continue;
-            }
+            subwin::ipaSelect(state);
+
+            ImGui::SetNextWindowFocus();
+
+            // Must be last bc can erase fileName
+            subwin::fileOpenedCanClose(state);
         }
 
-        win.clear();
-        ImGui::SFML::Render(win);
-        win.display();
+        state.win.clear();
+        ImGui::SFML::Render(state.win);
+        state.win.display();
     }
 
     ImGui::SFML::Shutdown();
@@ -74,22 +59,22 @@ int main() {
 }
 
 // Initialize SFML and ImGui and various other tools and settings
-static void initSys(sf::RenderWindow &win) {
-    win.setFramerateLimit(global::fps);
-    if (!ImGui::SFML::Init(win)) {
+static void initSys(AppState &state) {
+    state.win.setFramerateLimit(global::fps);
+    if (!ImGui::SFML::Init(state.win)) {
         std::cout << "Failed to init SFML." << std::endl;
     }
-    win.resetGLStates();
+    state.win.resetGLStates();
     ImGuiIO& io = ImGui::GetIO();
     io.MouseDrawCursor = false;
     natevolve::enableUtf8();
 }
 
 // Handle things like resize and close
-static void handleEvents(sf::RenderWindow &win, sf::Event &ev) {
+static void handleEvents(AppState &state, sf::Event &ev) {
     switch (ev.type) {
         case sf::Event::Closed:
-            win.close();
+            state.win.close();
             break;
         default:
             break;

@@ -13,51 +13,45 @@
 #include <wordup.hpp>
 #include <global.hpp>
 #include <subwin.hpp>
+#include <state.hpp>
 
-// Show a popup with an error message
-void subwin::errorPopup(sf::RenderWindow &win, std::optional<std::wstring> &errMessage) {
+void subwin::errorPopup(AppState &state) {
     ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (errMessage.has_value()) {
-        ImGui::Text("Error: %ls\n", errMessage.value().c_str());
+    if (state.errMessage.has_value()) {
+        ImGui::Text("Error: %ls\n", state.errMessage.value().c_str());
         if (ImGui::Button("Close")) {
-            errMessage.reset();
+            state.errMessage.reset();
         }
     }
     ImGui::End();
 }
 
-// Show a window that lets you open files or create a new one
-void subwin::fileOpen(
-        sf::RenderWindow &win,
-        std::optional<std::wstring> &errMessage,
-        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen,
-        imgui_addons::ImGuiFileBrowser &fileDialog,
-        bool &spawnNewFilePopup, bool &spawnOpenFilePopup) {
+void subwin::fileOpen(AppState &state) {
     // Need to open a file first
     ImGui::Begin("Choose File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
     if (ImGui::Button("New File")) {
-        spawnNewFilePopup = true;
+        state.spawnNewFilePopup = true;
     }
     ImGui::SameLine();
     if (ImGui::Button("Open File")) {
-        spawnOpenFilePopup = true;
+        state.spawnOpenFilePopup = true;
     }
 
     ImGui::End();
 
-    if (spawnNewFilePopup) {
+    if (state.spawnNewFilePopup) {
         ImGui::OpenPopup("Save File");
     }
-    if (spawnOpenFilePopup) {
+    if (state.spawnOpenFilePopup) {
         ImGui::OpenPopup("Open File");
     }
 
-    if (fileDialog.showFileDialog(
+    if (state.fileDialog.showFileDialog(
         "Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
         ImVec2(global::width, global::height), ".wu"
     )) {
-        spawnNewFilePopup = false;
+        state.spawnNewFilePopup = false;
 
         std::map<std::wstring, std::vector<std::wstring>> defCats;
         std::vector<std::wstring> defVwls;
@@ -66,33 +60,33 @@ void subwin::fileOpen(
         const natevolve::wordup::Generator defGen(
             defCats, defVwls, defOnsets, defCodas
         );
-        const auto saveRes = defGen.toFile(fileDialog.selected_fn.c_str());
+        const auto saveRes = defGen.toFile(state.fileDialog.selected_fn.c_str());
         if (!saveRes.has_value()) {
-            fileName.emplace(fileDialog.selected_fn);
-            gen.emplace(defGen);
+            state.fileName.emplace(state.fileDialog.selected_fn);
+            state.gen.emplace(defGen);
         } else {
-            errMessage.emplace(
-                L"Failed to save new file '" + natevolve::toWstr(fileDialog.selected_fn)
+            state.errMessage.emplace(
+                L"Failed to save new file '" + natevolve::toWstr(state.fileDialog.selected_fn)
                     + L"'\nErr: " + saveRes.value().message
             );
         }
     }
 
-    if (fileDialog.showFileDialog(
+    if (state.fileDialog.showFileDialog(
         "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::OPEN,
         ImVec2(global::width, global::height), ".wu"
     )) {
-        spawnOpenFilePopup = false;
+        state.spawnOpenFilePopup = false;
         const auto readGen = natevolve::wordup::Generator::fromFile(
-            fileDialog.selected_fn.c_str()
+            state.fileDialog.selected_fn.c_str()
         );
 
         if (!natevolve::isErr(readGen)) {
-            fileName.emplace(fileDialog.selected_fn);
-            gen.emplace(natevolve::ok(readGen));
+            state.fileName.emplace(state.fileDialog.selected_fn);
+            state.gen.emplace(natevolve::ok(readGen));
         } else {
-            errMessage.emplace(
-                L"Failed to open file '" + natevolve::toWstr(fileDialog.selected_fn)
+            state.errMessage.emplace(
+                L"Failed to open file '" + natevolve::toWstr(state.fileDialog.selected_fn)
                     + L"'\nErr: " + natevolve::err(readGen).message
             );
         }
@@ -100,24 +94,18 @@ void subwin::fileOpen(
 
     if (!ImGui::IsPopupOpen("New File")) {
         // Cancel
-        spawnNewFilePopup = false;
+        state.spawnNewFilePopup = false;
     }
     if (!ImGui::IsPopupOpen("Open File")) {
         // Cancel
-        spawnOpenFilePopup = false;
+        state.spawnOpenFilePopup = false;
     }
 }
 
-
-// Show the currently opened file and a button to close it
-bool subwin::fileOpenedCanClose(
-        sf::RenderWindow &win,
-        std::optional<std::string> &fileName, std::optional<natevolve::wordup::Generator> &gen) {
-    ImGui::Begin(
-        "Current File Opened", nullptr,
-        ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_AlwaysAutoResize
-    );
-    ImGui::Text("Name: %s", fileName.value().c_str());
+void subwin::fileOpenedCanClose(AppState &state) {
+    ImGui::Begin("Current File Opened", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SetWindowPos(canClosePos);
+    ImGui::Text("Name: %s", state.fileName.value().c_str());
     ImGui::SameLine();
     bool closeFile = false;
     if (ImGui::Button("Close File")) {
@@ -126,12 +114,17 @@ bool subwin::fileOpenedCanClose(
     ImGui::End();
 
     if (closeFile) {
-        fileName.reset();
-        gen.reset();
-        win.clear();
-        ImGui::SFML::Render(win);
-        win.display();
+        state.fileName.reset();
+        state.gen.reset();
     }
-    return !closeFile;
+}
+
+void subwin::ipaSelect(AppState &state) {
+    ImGui::Begin("Inventory");
+    ImGui::SetWindowPos(inventoryPos);
+
+    ImGui::Selectable("p");
+
+    ImGui::End();
 }
 

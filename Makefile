@@ -12,7 +12,8 @@ OBJNAME :=		$(PROJNAME).bin
 endif
 SRC :=			$(wildcard src/*.cpp) \
 				$(wildcard imgui/*.cpp) \
-				$(wildcard imgui-sfml/*.cpp)
+				$(wildcard imgui-sfml/*.cpp) \
+				$(wildcard ImGui-Addons/FileBrowser/*.cpp)
 OBJS :=			$(foreach file,$(SRC),obj/$(notdir $(basename $(file))).o)
 HFILES :=		$(wildcard include/*.hpp)
 
@@ -20,7 +21,7 @@ HFILES :=		$(wildcard include/*.hpp)
 
 CPPC :=			g++
 CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
-				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml \
+				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml -IImGui-Addons/FileBrowser \
 				$(shell pkg-config --cflags sfml-all)
 LD :=			g++
 LDFLAGS :=		-Lnatevolve-ark -lnatevolve $(shell pkg-config --libs sfml-all) -lGL
@@ -40,7 +41,7 @@ clean:
 
 ## Main
 
-libnatevolve.a:
+natevolve-ark/libnatevolve.a:
 	$(MAKE) -C natevolve-ark
 
 obj/%.o: src/%.cpp $(HFILES)
@@ -55,6 +56,10 @@ obj/%.o: imgui-sfml/%.cpp $(HFILES)
 	mkdir -p obj
 	$(CPPC) -o $@ $(CPPFLAGS) -c $<
 
-$(OBJNAME): $(OBJS) libnatevolve.a
+obj/%.o: ImGui-Addons/FileBrowser/%.cpp $(HFILES)
+	mkdir -p obj
+	$(CPPC) -o $@ $(CPPFLAGS) -c $<
+
+$(OBJNAME): $(OBJS) natevolve-ark/libnatevolve.a
 	$(LD) -o $@ $(OBJS) $(LDFLAGS)
 

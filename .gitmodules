@@ -7,3 +7,6 @@
 [submodule "imgui-sfml"]
 	path = imgui-sfml
 	url = https://github.com/SFML/imgui-sfml
+[submodule "ImGui-Addons"]
+	path = ImGui-Addons
+	url = https://github.com/gallickgunner/ImGui-Addons

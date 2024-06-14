@@ -9,6 +9,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
+#include <ImGuiFileBrowser.h>
 #include <natevolve.hpp>
 #include <wordup.hpp>
 
@@ -30,8 +31,11 @@ int main() {
     natevolve::enableUtf8();
 
     // Initialize app state
+    imgui_addons::ImGuiFileBrowser fileDialog;
     std::optional<natevolve::wordup::Generator> gen;
     std::optional<std::string> fileName;
+    bool createNewFile = false;
+    bool openFile = false;
 
     // Main loop
     sf::Clock deltaClock;
@@ -52,15 +56,70 @@ int main() {
 
         if (!fileName.has_value()) {
             // Need to open a file first
-            ImGui::Begin("Open File");
+            ImGui::Begin("Open File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
             if (ImGui::Button("New File")) {
+                createNewFile = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Open File")) {
+                openFile = true;
+            }
+
+            if (createNewFile) {
+                ImGui::OpenPopup("Save File");
+            }
+            if (openFile) {
+                ImGui::OpenPopup("Open File");
+            }
+
+            if (fileDialog.showFileDialog(
+                "Save File", imgui_addons::ImGuiFileBrowser::DialogMode::SAVE,
+                ImVec2(g_width, g_height), ".wu"
+            )) {
+                createNewFile = false;
+
                 std::map<std::wstring, std::vector<std::wstring>> defCats;
                 std::vector<std::wstring> defVwls;
                 std::vector<std::vector<std::wstring>> defOnsets;
                 std::vector<std::vector<std::wstring>> defCodas;
-                const natevolve::wordup::Generator defGen(defCats, defVwls, defOnsets, defCodas);
-                gen.emplace(defGen);
+                const natevolve::wordup::Generator defGen(
+                    defCats, defVwls, defOnsets, defCodas
+                );
+                const auto saveRes = defGen.toFile(fileDialog.selected_fn.c_str());
+                if (!saveRes.has_value()) {
+                    fileName.emplace(fileDialog.selected_fn);
+                    gen.emplace(defGen);
+                } else {
+                    std::cout << "Todo: Implement errors" << std::endl;
+                }
             }
+
+            if (fileDialog.showFileDialog(
+                "Open File", imgui_addons::ImGuiFileBrowser::DialogMode::SELECT,
+                ImVec2(g_width, g_height), ".wu"
+            )) {
+                openFile = false;
+                const auto readGen = natevolve::wordup::Generator::fromFile(
+                    fileDialog.selected_fn.c_str()
+                );
+
+                if (!natevolve::isErr(readGen)) {
+                    fileName.emplace(fileDialog.selected_fn);
+                    gen.emplace(natevolve::ok(readGen));
+                } else {
+                    std::cout << "Todo: Implement errors" << std::endl;
+                }
+            }
+
+            if (!ImGui::IsPopupOpen("New File")) {
+                // Cancel
+                createNewFile = false;
+            }
+            if (!ImGui::IsPopupOpen("Open File")) {
+                // Cancel
+                openFile = false;
+            }
+
             ImGui::End();
         } else {
 

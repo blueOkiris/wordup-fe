@@ -57,6 +57,10 @@ static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
         { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
         { L"", L"" }
     }, {
+        { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
+        { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
+        { L"", L"" }
+    }, {
         { L"", L"" }, { L"ʋ", L"" }, { L"", L"" }, { L"ɹ", L"" }, { L"", L"" },
         { L"ɻ", L"" }, { L"j", L"" }, { L"ɰ", L"" }, { L"", L"" }, { L"", L"" },
         { L"", L"" }
@@ -213,21 +217,17 @@ void subwin::ipaSelect(AppState &state) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("%s", ipaConsRowHdrs[row]);
-        //ImGui::PushFont(global::fontCharisSil);
+        ImGui::PushFont(global::fontCharisSil);
         for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
             ImGui::TableNextColumn();
             if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
                 ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str());
-            } else {
-                ImGui::Text(" ");
             }
             if (ipaConsTbl[row][col][1] != std::wstring(L"")) {
                 ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str());
-            } else {
-                ImGui::Text(" ");
             }
         }
-        //ImGui::PopFont();
+        ImGui::PopFont();
     }
     ImGui::EndTable();
 

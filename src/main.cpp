@@ -65,14 +65,14 @@ static void initSys(AppState &state) {
     }
     ImGuiIO &io = ImGui::GetIO();
     io.MouseDrawCursor = false;
-    /*io.Fonts->AddFontFromFileTTF("fonts/ubuntu-font-family/Ubuntu-R.ttf", 18.0f);
+    io.Fonts->AddFontFromFileTTF("fonts/ubuntu-font-family/Ubuntu-R.ttf", 18.0f);
     global::fontCharisSil = io.Fonts->AddFontFromFileTTF(
         "fonts/charis-sil/CharisSIL-Regular.ttf", 26.0f, nullptr, global::ipaRanges
     );
-    if (ImGui::SFML::UpdateFontTexture()) {
+    if (!ImGui::SFML::UpdateFontTexture()) {
         std::cout << "Failed to update font texture." << std::endl;
         exit(1);
-    }*/
+    }
     state.win.resetGLStates();
     natevolve::enableUtf8();
 }

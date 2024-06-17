@@ -59,18 +59,20 @@ int main() {
 // Initialize SFML and ImGui and various other tools and settings
 static void initSys(AppState &state) {
     state.win.setFramerateLimit(global::fps);
-    if (!ImGui::SFML::Init(state.win, false)) {
+    if (!ImGui::SFML::Init(state.win)) {
         std::cout << "Failed to init SFML." << std::endl;
+        exit(1);
     }
     ImGuiIO &io = ImGui::GetIO();
     io.MouseDrawCursor = false;
-    io.Fonts->AddFontFromFileTTF("fonts/ubuntu-font-family/Ubuntu-R.ttf", 18.0f);
+    /*io.Fonts->AddFontFromFileTTF("fonts/ubuntu-font-family/Ubuntu-R.ttf", 18.0f);
     global::fontCharisSil = io.Fonts->AddFontFromFileTTF(
         "fonts/charis-sil/CharisSIL-Regular.ttf", 26.0f, nullptr, global::ipaRanges
     );
     if (ImGui::SFML::UpdateFontTexture()) {
         std::cout << "Failed to update font texture." << std::endl;
-    }
+        exit(1);
+    }*/
     state.win.resetGLStates();
     natevolve::enableUtf8();
 }

@@ -213,7 +213,7 @@ void subwin::ipaSelect(AppState &state) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text("%s", ipaConsRowHdrs[row]);
-        ImGui::PushFont(global::fontCharisSil);
+        //ImGui::PushFont(global::fontCharisSil);
         for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
             ImGui::TableNextColumn();
             if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
@@ -227,7 +227,7 @@ void subwin::ipaSelect(AppState &state) {
                 ImGui::Text(" ");
             }
         }
-        ImGui::PopFont();
+        //ImGui::PopFont();
     }
     ImGui::EndTable();
 

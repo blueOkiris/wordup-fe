@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <algorithm>
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -19,6 +20,7 @@
 
 #define IPA_CONS_NCOLS      11
 #define IPA_CONS_NROWS      12
+#define IPA_BTN_WIDTH       15
 
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 150);
@@ -57,9 +59,9 @@ static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
         { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
         { L"", L"" }
     }, {
-        { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
-        { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" }, { L"", L"" },
-        { L"", L"" }
+        { L"p͡f", L"b͡v" }, { L"", L"" }, { L"t͡θ", L"d͡ð" }, { L"t͡s", L"d͡z" }, { L"t͡ʃ", L"d͡ʒ" },
+        { L"ʈ͡ʂ", L"ɖ͡ʐ" }, { L"c͡ç", L"ɟ͡ʝ" }, { L"k͡x", L"g͡ɣ" }, { L"q͡χ", L"ɢ͡ʁ" }, { L"", L"" },
+        { L"ʔ͡h", L"" }
     }, {
         { L"", L"" }, { L"ʋ", L"" }, { L"", L"" }, { L"ɹ", L"" }, { L"", L"" },
         { L"ɻ", L"" }, { L"j", L"" }, { L"ɰ", L"" }, { L"", L"" }, { L"", L"" },
@@ -122,10 +124,12 @@ void subwin::fileOpen(AppState &state) {
     )) {
         state.spawnNewFilePopup = false;
 
-        std::map<std::wstring, std::vector<std::wstring>> defCats;
+        std::map<std::wstring, std::vector<std::wstring>> defCats({
+            { L"C", std::vector<std::wstring>({}) }
+        });
         std::vector<std::wstring> defVwls;
-        std::vector<std::vector<std::wstring>> defOnsets;
-        std::vector<std::vector<std::wstring>> defCodas;
+        std::vector<std::vector<std::wstring>> defOnsets({ std::vector<std::wstring>({ L"∅" }) });
+        std::vector<std::vector<std::wstring>> defCodas({ std::vector<std::wstring>({ L"∅" }) });
         const natevolve::wordup::Generator defGen(
             defCats, defVwls, defOnsets, defCodas
         );
@@ -207,6 +211,10 @@ void subwin::ipaSelect(AppState &state) {
         ImGuiTableFlags_Borders
     );
 
+    bool changed = false;
+    const auto cons = state.gen.value().categories.at(L"C"); // No error handling should be needed
+    std::vector<std::wstring> newCons;
+
     ImGui::TableNextColumn();
     ImGui::Text(" ");
     for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
@@ -221,16 +229,52 @@ void subwin::ipaSelect(AppState &state) {
         for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
             ImGui::TableNextColumn();
             if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
-                ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str());
+                const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][0]);
+                const auto inCons = find != cons.end();
+                const auto toggle = ImGui::Selectable(
+                    natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str(), inCons,
+                    0, ImVec2(IPA_BTN_WIDTH, 0)
+                );
+                if ((inCons && !toggle) || (!inCons && toggle)) { // Untouched or switched to prssd
+                    newCons.push_back(ipaConsTbl[row][col][0]);
+                }
+                if (toggle) {
+                    changed = true;
+                }
             }
             if (ipaConsTbl[row][col][1] != std::wstring(L"")) {
-                ImGui::Selectable(natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str());
+                ImGui::SameLine();
+                const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][1]);
+                const auto inCons = find != cons.end();
+                const auto toggle = ImGui::Selectable(
+                    natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str(), inCons,
+                    0, ImVec2(IPA_BTN_WIDTH, 0)
+                );
+                if ((inCons && !toggle) || (!inCons && toggle)) { // Untouched or switched to prssd
+                    newCons.push_back(ipaConsTbl[row][col][1]);
+                }
+                if (toggle) {
+                    changed = true;
+                }
             }
         }
         ImGui::PopFont();
     }
     ImGui::EndTable();
-
     ImGui::End();
+
+    // Update if changed
+    if (changed) {
+        auto categories = state.gen.value().categories;
+        categories[L"C"] = newCons;
+        auto newGen = natevolve::wordup::Generator(
+            categories,
+            state.gen.value().vowels,
+            state.gen.value().onsetOptions,
+            state.gen.value().codaOptions
+        );
+        newGen.toFile(state.fileName.value().c_str());
+        state.gen.emplace(newGen);
+    }
 }
 

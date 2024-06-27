@@ -21,6 +21,7 @@
 #define IPA_CONS_NCOLS      11
 #define IPA_CONS_NROWS      12
 #define IPA_BTN_WIDTH       15
+#define IPA_NUM_EXTRA       10
 
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 150);
@@ -84,7 +85,10 @@ static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
         { L"", L"" }
     }
 };
-static const std::wstring ipaConsExtra[] = { L"w" };
+
+static const wchar_t *ipaConsExtra[IPA_NUM_EXTRA] = {
+    L"w", L"ʍ", L"ɥ", L"ʜ", L"ʢ", L"ʡ", L"ɕ", L"ʑ", L"ɹ", L"ɧ"
+};
 
 void subwin::errorPopup(AppState &state) {
     ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
@@ -229,6 +233,8 @@ void subwin::ipaSelect(AppState &state) {
     const auto cons = state.gen.value().categories.at(L"C"); // No error handling should be needed
     std::vector<std::wstring> newCons;
 
+    // -------- Main Consonant Table --------
+
     ImGui::TableNextColumn();
     ImGui::Text(" ");
     for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
@@ -275,6 +281,35 @@ void subwin::ipaSelect(AppState &state) {
         ImGui::PopFont();
     }
     ImGui::EndTable();
+
+    // -------- Extra Symbols --------
+
+    ImGui::Separator();
+    ImGui::Text("Extra Consonants:");
+    ImGui::PushFont(global::fontCharisSil);
+    for (size_t col = 0; col < IPA_NUM_EXTRA; col++) {
+        ImGui::SameLine();
+        const auto find = std::find(cons.begin(), cons.end(), ipaConsExtra[col]);
+        const auto inCons = find != cons.end();
+        const auto toggle = ImGui::Selectable(
+            natevolve::fromWstr(ipaConsExtra[col]).c_str(), inCons,
+            0, ImVec2(IPA_BTN_WIDTH, 0)
+        );
+        if ((inCons && !toggle) || (!inCons && toggle)) { // Untouched or switched to prssd
+            newCons.push_back(ipaConsExtra[col]);
+        }
+        if (toggle) {
+            changed = true;
+        }
+    }
+    ImGui::PopFont();
+
+    // -------- Vowels --------
+
+    ImGui::Separator();
+
+    // TODO
+
     ImGui::End();
 
     // Update if changed

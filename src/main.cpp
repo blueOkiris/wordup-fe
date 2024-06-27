@@ -59,7 +59,7 @@ int main() {
 // Initialize SFML and ImGui and various other tools and settings
 static void initSys(AppState &state) {
     state.win.setFramerateLimit(global::fps);
-    if (!ImGui::SFML::Init(state.win)) {
+    if (!ImGui::SFML::Init(state.win, false)) {
         std::cout << "Failed to init SFML." << std::endl;
         exit(1);
     }

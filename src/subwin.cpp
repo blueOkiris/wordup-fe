@@ -22,6 +22,8 @@
 #define IPA_CONS_NROWS      12
 #define IPA_BTN_WIDTH       15
 #define IPA_NUM_EXTRA       10
+#define IPA_VOWELS_NCOLS    5
+#define IPA_VOWELS_NROWS    7
 
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 150);
@@ -85,9 +87,23 @@ static const wchar_t *ipaConsTbl[IPA_CONS_NROWS][IPA_CONS_NCOLS][2] = {
         { L"", L"" }
     }
 };
-
 static const wchar_t *ipaConsExtra[IPA_NUM_EXTRA] = {
     L"w", L"ʍ", L"ɥ", L"ʜ", L"ʢ", L"ʡ", L"ɕ", L"ʑ", L"ɹ", L"ɧ"
+};
+static const char *ipaVowelColHdrs[IPA_VOWELS_NCOLS] = {
+    "Front", "", "Central", "", "Back"
+};
+static const char *ipaVowelRowHdrs[IPA_VOWELS_NROWS] = {
+    "Close", "", "Close-Mid", "", "Open-Mid", "", "Open"
+};
+static const wchar_t *ipaVowels[IPA_VOWELS_NROWS][IPA_VOWELS_NCOLS][2] = {
+    { { L"i", L"y" },   { L"", L"" },   { L"ɨ", L"ʉ" }, { L"", L"" },   { L"ɯ", L"u" } },
+    { { L"", L"" },     { L"ɪ", L"ʏ" }, { L"", L"" },   { L"ʊ", L"" },  { L"", L"" } },
+    { { L"e", L"ø"},    { L"", L"" },   { L"ɘ", L"ɵ" }, { L"", L"" },   { L"ɤ", L"o" } },
+    { { L"", L"" },     { L"", L"" },   { L"ə", L"" },  { L"", L"" },   { L"", L"" } },
+    { { L"ɛ", L"œ" },   { L"", L"" },   { L"ɜ", L"ɞ" }, { L"", L"" },   { L"ʌ", L"ɔ" } },
+    { { L"æ", L"" },    { L"", L"" },   { L"ɐ", L"" },  { L"", L"" },   { L"", L"" } },
+    { { L"a", L"ɶ" },   { L"", L"" },   { L"", L"" },   { L"", L"" },   { L"ɑ", L"ɒ" } }
 };
 
 void subwin::errorPopup(AppState &state) {
@@ -224,12 +240,13 @@ void subwin::ipaSelect(AppState &state) {
         ImGui::SetWindowPos(inventoryPos);
     }
 
+    bool changed = false;
+
     ImGui::BeginTable(
         "Consonants", IPA_CONS_NCOLS + 1,
         ImGuiTableFlags_Borders
     );
 
-    bool changed = false;
     const auto cons = state.gen.value().categories.at(L"C"); // No error handling should be needed
     std::vector<std::wstring> newCons;
 
@@ -308,7 +325,60 @@ void subwin::ipaSelect(AppState &state) {
 
     ImGui::Separator();
 
-    // TODO
+    ImGui::BeginTable(
+        "Vowels", IPA_VOWELS_NCOLS + 1,
+        ImGuiTableFlags_Borders
+    );
+
+    const auto vowels = state.gen.value().vowels;
+    std::vector<std::wstring> newVwls;
+
+    ImGui::TableNextColumn();
+    ImGui::Text(" ");
+    for (size_t col = 0; col < IPA_VOWELS_NCOLS; col++) {
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", ipaVowelColHdrs[col]);
+    }
+    for (size_t row = 0; row < IPA_VOWELS_NROWS; row++) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", ipaVowelRowHdrs[row]);
+        ImGui::PushFont(global::fontCharisSil);
+        for (size_t col = 0; col < IPA_VOWELS_NCOLS; col++) {
+            ImGui::TableNextColumn();
+            if (ipaVowels[row][col][0] != std::wstring(L"")) {
+                const auto find = std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][0]);
+                const auto inVwls = find != vowels.end();
+                const auto toggle = ImGui::Selectable(
+                    natevolve::fromWstr(ipaVowels[row][col][0]).c_str(), inVwls,
+                    0, ImVec2(IPA_BTN_WIDTH, 0)
+                );
+                if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouched or switched to prssd
+                    newVwls.push_back(ipaVowels[row][col][0]);
+                }
+                if (toggle) {
+                    changed = true;
+                }
+            }
+            if (ipaVowels[row][col][1] != std::wstring(L"")) {
+                ImGui::SameLine();
+                const auto find = std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][1]);
+                const auto inVwls = find != vowels.end();
+                const auto toggle = ImGui::Selectable(
+                    natevolve::fromWstr(ipaVowels[row][col][1]).c_str(), inVwls,
+                    0, ImVec2(IPA_BTN_WIDTH, 0)
+                );
+                if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouched or switched to prssd
+                    newVwls.push_back(ipaVowels[row][col][1]);
+                }
+                if (toggle) {
+                    changed = true;
+                }
+            }
+        }
+        ImGui::PopFont();
+    }
+    ImGui::EndTable();
 
     ImGui::End();
 
@@ -318,7 +388,7 @@ void subwin::ipaSelect(AppState &state) {
         categories[L"C"] = newCons;
         auto newGen = natevolve::wordup::Generator(
             categories,
-            state.gen.value().vowels,
+            newVwls,
             state.gen.value().onsetOptions,
             state.gen.value().codaOptions
         );

@@ -155,8 +155,22 @@ void subwin::fileOpen(AppState &state) {
         );
 
         if (!natevolve::isErr(readGen)) {
-            state.fileName.emplace(state.fileDialog.selected_fn);
-            state.gen.emplace(natevolve::ok(readGen));
+            if (natevolve::ok(readGen).categories.count(L"C") < 1
+                    || std::find(
+                        natevolve::ok(readGen).onsetOptions.begin(),
+                        natevolve::ok(readGen).onsetOptions.end(), 
+                        std::vector<std::wstring>({ L"∅" })
+                    ) == natevolve::ok(readGen).onsetOptions.end()
+                    || std::find(
+                        natevolve::ok(readGen).codaOptions.begin(),
+                        natevolve::ok(readGen).codaOptions.end(), 
+                        std::vector<std::wstring>({ L"∅" })
+                    ) == natevolve::ok(readGen).codaOptions.end()) {
+                state.errMessage.emplace(L"Corrupted file");
+            } else {
+                state.fileName.emplace(state.fileDialog.selected_fn);
+                state.gen.emplace(natevolve::ok(readGen));
+            }
         } else {
             state.errMessage.emplace(
                 L"Failed to open file '" + natevolve::toWstr(state.fileDialog.selected_fn)

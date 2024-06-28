@@ -25,16 +25,17 @@ CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
 				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml -IImGui-Addons/FileBrowser \
 				-ISFML/include
 else
-CPPFLAGS :=		-std=c++17 -g -Wall -Werror \
+CPPFLAGS :=		-std=c++17 -O2 -Wall -Werror \
 				-Iinclude -Inatevolve-ark/include -Iimgui -Iimgui-sfml -IImGui-Addons/FileBrowser \
 				$(shell pkg-config --cflags sfml-all)
 endif
 LD :=			g++
 ifeq ($(OS), Windows_NT)
-LDFLAGS :=		-mwindows -Lnatevolve-ark -LSFML/lib -lnatevolve -lopengl32 \
+LDFLAGS :=		-mwindows \
+				-Lnatevolve-ark -LSFML/lib -lnatevolve -lopengl32 \
 				-lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system
 else
-LDFLAGS :=	 	-g -Lnatevolve-ark -lnatevolve -lGL \
+LDFLAGS :=	 	-Lnatevolve-ark -lnatevolve -lGL \
 				$(shell pkg-config --libs sfml-all)
 endif
 

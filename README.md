@@ -12,7 +12,7 @@ Download the latest from the Releases section on the right
 
 Tutorial Video:
 
-[![IMAGE ALT](https://img.youtube.com/vi/G9zUSiJPcnM/0.jpg)](https://youtu.be/G9zUSiJPcnM)
+![IMAGE ALT](https://img.youtube.com/vi/G9zUSiJPcnM/0.jpg)
 
 There are six tabs:
 
@@ -43,10 +43,10 @@ Dependencies:
 - OpenGL
 - pkg-config (Linux Only)
 - [SFML < 3.0](https://www.sfml-dev.org/download/sfml/2.6.1/)
-   + Windows users have to download the source bc of the lack of package manager and annoyance of building from source
-      1. Download and extract the root folder (the one with `lib/`, `bin/`, and `include/`) into an "SFML/" folder (i.e. there should be an SFML/include/ folder in the repo root directory)
-      2. Copy all the `.dll`s from SFML/bin/ to the root repo directory
-      3. Build like normal
+  + Windows users have to download the source bc of the lack of package manager and annoyance of building from source 
+    1. Download and extract the root folder (the one with `lib/`, `bin/`, and `include/`) into an "SFML/" folder (i.e. there should be an SFML/include/ folder in the repo root directory)
+    2. Copy all the `.dll`s from SFML/bin/ to the root repo directory
+    3. Build like normal
 
 Update the submodules: `git submodule update --init --recursive`
 
@@ -58,4 +58,3 @@ Run `make -j<num cpu processors>` (or `mingw32-make` on Windows)
 docker build -t nonnixos-build nonnixos-build
 docker run --rm -v $(pwd):/output nonnixos-build
 ```
-

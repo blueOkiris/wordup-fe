@@ -20,5 +20,8 @@ namespace subwin {
 
     // Show a table with selectable IPA flags
     void ipaSelect(AppState &state);
+
+    // Show a window for grouping chosen sounds into categories
+    void categoryMaker(AppState &state);
 }
 

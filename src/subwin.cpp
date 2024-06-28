@@ -27,6 +27,7 @@
 
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 150);
+static const ImVec2 categoryPos(60, 210);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
     "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",
@@ -231,73 +232,67 @@ void subwin::fileOpenedCanClose(AppState &state) {
 }
 
 void subwin::ipaSelect(AppState &state) {
-    ImGui::Begin(
-        "Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse
-    );
-
+    ImGui::Begin("Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     if (!std::filesystem::exists("imgui.ini")) {
         // Give it a non-overlapping default pos
         ImGui::SetWindowPos(inventoryPos);
+        ImGui::SetWindowCollapsed(true);
     }
 
     bool changed = false;
 
-    ImGui::BeginTable(
-        "Consonants", IPA_CONS_NCOLS + 1,
-        ImGuiTableFlags_Borders
-    );
-
-    const auto cons = state.gen.value().categories.at(L"C"); // No error handling should be needed
-    std::vector<std::wstring> newCons;
-
     // -------- Main Consonant Table --------
 
-    ImGui::TableNextColumn();
-    ImGui::Text(" ");
-    for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
+    const auto cons = state.gen.value().categories.at(L"C"); // No error handl should be needed
+    std::vector<std::wstring> newCons;
+    if (ImGui::BeginTable("Consonants", IPA_CONS_NCOLS + 1, ImGuiTableFlags_Borders)) {
         ImGui::TableNextColumn();
-        ImGui::Text("%s", ipaConsColHdrs[col]);
-    }
-    for (size_t row = 0; row < IPA_CONS_NROWS; row++) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", ipaConsRowHdrs[row]);
-        ImGui::PushFont(global::fontCharisSil);
+        ImGui::Text(" ");
         for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
             ImGui::TableNextColumn();
-            if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
-                const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][0]);
-                const auto inCons = find != cons.end();
-                const auto toggle = ImGui::Selectable(
-                    natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str(), inCons,
-                    0, ImVec2(IPA_BTN_WIDTH, 0)
-                );
-                if ((inCons && !toggle) || (!inCons && toggle)) { // Untouched or switched to prssd
-                    newCons.push_back(ipaConsTbl[row][col][0]);
-                }
-                if (toggle) {
-                    changed = true;
-                }
-            }
-            if (ipaConsTbl[row][col][1] != std::wstring(L"")) {
-                ImGui::SameLine();
-                const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][1]);
-                const auto inCons = find != cons.end();
-                const auto toggle = ImGui::Selectable(
-                    natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str(), inCons,
-                    0, ImVec2(IPA_BTN_WIDTH, 0)
-                );
-                if ((inCons && !toggle) || (!inCons && toggle)) { // Untouched or switched to prssd
-                    newCons.push_back(ipaConsTbl[row][col][1]);
-                }
-                if (toggle) {
-                    changed = true;
-                }
-            }
+            ImGui::Text("%s", ipaConsColHdrs[col]);
         }
-        ImGui::PopFont();
+        for (size_t row = 0; row < IPA_CONS_NROWS; row++) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", ipaConsRowHdrs[row]);
+            ImGui::PushFont(global::fontCharisSil);
+            for (size_t col = 0; col < IPA_CONS_NCOLS; col++) {
+                ImGui::TableNextColumn();
+                if (ipaConsTbl[row][col][0] != std::wstring(L"")) {
+                    const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][0]);
+                    const auto inCons = find != cons.end();
+                    const auto toggle = ImGui::Selectable(
+                        natevolve::fromWstr(ipaConsTbl[row][col][0]).c_str(), inCons,
+                        0, ImVec2(IPA_BTN_WIDTH, 0)
+                    );
+                    if ((inCons && !toggle) || (!inCons && toggle)) { // Untouch or switch to prssd
+                        newCons.push_back(ipaConsTbl[row][col][0]);
+                    }
+                    if (toggle) {
+                        changed = true;
+                    }
+                }
+                if (ipaConsTbl[row][col][1] != std::wstring(L"")) {
+                    ImGui::SameLine();
+                    const auto find = std::find(cons.begin(), cons.end(), ipaConsTbl[row][col][1]);
+                    const auto inCons = find != cons.end();
+                    const auto toggle = ImGui::Selectable(
+                        natevolve::fromWstr(ipaConsTbl[row][col][1]).c_str(), inCons,
+                        0, ImVec2(IPA_BTN_WIDTH, 0)
+                    );
+                    if ((inCons && !toggle) || (!inCons && toggle)) { // Untouch or switch to prssd
+                        newCons.push_back(ipaConsTbl[row][col][1]);
+                    }
+                    if (toggle) {
+                        changed = true;
+                    }
+                }
+            }
+            ImGui::PopFont();
+        }
+        ImGui::EndTable();
     }
-    ImGui::EndTable();
 
     // -------- Extra Symbols --------
 
@@ -324,61 +319,58 @@ void subwin::ipaSelect(AppState &state) {
     // -------- Vowels --------
 
     ImGui::Separator();
-
-    ImGui::BeginTable(
-        "Vowels", IPA_VOWELS_NCOLS + 1,
-        ImGuiTableFlags_Borders
-    );
-
     const auto vowels = state.gen.value().vowels;
     std::vector<std::wstring> newVwls;
-
-    ImGui::TableNextColumn();
-    ImGui::Text(" ");
-    for (size_t col = 0; col < IPA_VOWELS_NCOLS; col++) {
+    if (ImGui::BeginTable("Vowels", IPA_VOWELS_NCOLS + 1, ImGuiTableFlags_Borders)) {
         ImGui::TableNextColumn();
-        ImGui::Text("%s", ipaVowelColHdrs[col]);
-    }
-    for (size_t row = 0; row < IPA_VOWELS_NROWS; row++) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("%s", ipaVowelRowHdrs[row]);
-        ImGui::PushFont(global::fontCharisSil);
+        ImGui::Text(" ");
         for (size_t col = 0; col < IPA_VOWELS_NCOLS; col++) {
             ImGui::TableNextColumn();
-            if (ipaVowels[row][col][0] != std::wstring(L"")) {
-                const auto find = std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][0]);
-                const auto inVwls = find != vowels.end();
-                const auto toggle = ImGui::Selectable(
-                    natevolve::fromWstr(ipaVowels[row][col][0]).c_str(), inVwls,
-                    0, ImVec2(IPA_BTN_WIDTH, 0)
-                );
-                if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouched or switched to prssd
-                    newVwls.push_back(ipaVowels[row][col][0]);
-                }
-                if (toggle) {
-                    changed = true;
-                }
-            }
-            if (ipaVowels[row][col][1] != std::wstring(L"")) {
-                ImGui::SameLine();
-                const auto find = std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][1]);
-                const auto inVwls = find != vowels.end();
-                const auto toggle = ImGui::Selectable(
-                    natevolve::fromWstr(ipaVowels[row][col][1]).c_str(), inVwls,
-                    0, ImVec2(IPA_BTN_WIDTH, 0)
-                );
-                if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouched or switched to prssd
-                    newVwls.push_back(ipaVowels[row][col][1]);
-                }
-                if (toggle) {
-                    changed = true;
-                }
-            }
+            ImGui::Text("%s", ipaVowelColHdrs[col]);
         }
-        ImGui::PopFont();
+        for (size_t row = 0; row < IPA_VOWELS_NROWS; row++) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", ipaVowelRowHdrs[row]);
+            ImGui::PushFont(global::fontCharisSil);
+            for (size_t col = 0; col < IPA_VOWELS_NCOLS; col++) {
+                ImGui::TableNextColumn();
+                if (ipaVowels[row][col][0] != std::wstring(L"")) {
+                    const auto find =
+                        std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][0]);
+                    const auto inVwls = find != vowels.end();
+                    const auto toggle = ImGui::Selectable(
+                        natevolve::fromWstr(ipaVowels[row][col][0]).c_str(), inVwls,
+                        0, ImVec2(IPA_BTN_WIDTH, 0)
+                    );
+                    if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouch or switch to prssd
+                        newVwls.push_back(ipaVowels[row][col][0]);
+                    }
+                    if (toggle) {
+                        changed = true;
+                    }
+                }
+                if (ipaVowels[row][col][1] != std::wstring(L"")) {
+                    ImGui::SameLine();
+                    const auto find =
+                        std::find(vowels.begin(), vowels.end(), ipaVowels[row][col][1]);
+                    const auto inVwls = find != vowels.end();
+                    const auto toggle = ImGui::Selectable(
+                        natevolve::fromWstr(ipaVowels[row][col][1]).c_str(), inVwls,
+                        0, ImVec2(IPA_BTN_WIDTH, 0)
+                    );
+                    if ((inVwls && !toggle) || (!inVwls && toggle)) { // Untouch or switch to prssd
+                        newVwls.push_back(ipaVowels[row][col][1]);
+                    }
+                    if (toggle) {
+                        changed = true;
+                    }
+                }
+            }
+            ImGui::PopFont();
+        }
+        ImGui::EndTable();
     }
-    ImGui::EndTable();
 
     ImGui::End();
 
@@ -395,5 +387,113 @@ void subwin::ipaSelect(AppState &state) {
         newGen.toFile(state.fileName.value().c_str());
         state.gen.emplace(newGen);
     }
+}
+
+void subwin::categoryMaker(AppState &state) {
+    ImGui::Begin("Categories", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (!std::filesystem::exists("imgui.ini")) {
+        // Give it a non-overlapping default pos
+        ImGui::SetWindowPos(categoryPos);
+        ImGui::SetWindowCollapsed(true);
+    }
+
+    if (state.gen.value().categories.size() > 1) {
+        std::vector<std::wstring> catsNoC;
+        for (const auto &cat : state.gen.value().categories) {
+            if (cat.first == L"C") {
+                continue;
+            }
+            catsNoC.push_back(cat.first);
+        }
+        if (state.selCat == L"") {
+            state.selCat = catsNoC[0];
+        }
+
+        // -------- Current Category --------
+
+        if (ImGui::BeginCombo("Category", natevolve::fromWstr(state.selCat).c_str())) {
+            for (const auto &cat : catsNoC) {
+                if (ImGui::Selectable(natevolve::fromWstr(cat).c_str(), state.selCat == cat)) {
+                    state.selCat = cat;
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::SameLine();
+        auto shouldRemove = ImGui::Button("Remove");
+
+        if (shouldRemove) {
+            auto categories = state.gen.value().categories;
+            categories.erase(state.selCat);
+            state.selCat = L"";
+            auto newGen = natevolve::wordup::Generator(
+                categories,
+                state.gen.value().vowels,
+                state.gen.value().onsetOptions,
+                state.gen.value().codaOptions
+            );
+            newGen.toFile(state.fileName.value().c_str());
+            state.gen.emplace(newGen);
+        } else {
+            // -------- Buttons to add consonants to a category --------
+
+            bool changed = false;
+            std::vector<std::wstring> newCons;
+            ImGui::Text("Available:");
+            ImGui::PushFont(global::fontCharisSil);
+            const auto curr = state.gen.value().categories.at(state.selCat);
+            for (const auto &cons : state.gen.value().categories.at(L"C")) {
+                ImGui::SameLine();
+                const auto find = std::find(curr.begin(), curr.end(), cons);
+                const auto inCurr = find != curr.end();
+                const auto toggle = ImGui::Selectable(
+                    natevolve::fromWstr(cons).c_str(), inCurr,
+                    0, ImVec2(IPA_BTN_WIDTH, 0)
+                );
+                if ((inCurr && !toggle) || (!inCurr && toggle)) { // Untouch or switch to prssd
+                    newCons.push_back(cons);
+                }
+                if (toggle) {
+                    changed = true;
+                }
+            }
+            ImGui::PopFont();
+
+            if (changed) {
+                auto categories = state.gen.value().categories;
+                categories[state.selCat] = newCons;
+                auto newGen = natevolve::wordup::Generator(
+                    categories,
+                    state.gen.value().vowels,
+                    state.gen.value().onsetOptions,
+                    state.gen.value().codaOptions
+                );
+                newGen.toFile(state.fileName.value().c_str());
+                state.gen.emplace(newGen);
+            }
+        }
+    }
+
+    // -------- New Category --------
+
+    char catNameBuff[5] = { 0 };
+    const auto textSubmit = ImGui::InputTextWithHint(
+        "New Category Name", "<=4 chars, type and press Enter", catNameBuff, 5,
+        ImGuiInputTextFlags_CharsNoBlank | ImGuiInputTextFlags_EnterReturnsTrue 
+    );
+    if (textSubmit && std::string(catNameBuff) != "") {
+        auto newCats = state.gen.value().categories;
+        newCats[natevolve::toWstr(std::string(catNameBuff))] = std::vector<std::wstring>({});
+        auto newGen = (natevolve::wordup::Generator) {
+            newCats,
+            state.gen.value().vowels,
+            state.gen.value().onsetOptions,
+            state.gen.value().codaOptions
+        };
+        newGen.toFile(state.fileName.value().c_str());
+        state.gen.emplace(newGen);
+    }
+
+    ImGui::End();
 }
 

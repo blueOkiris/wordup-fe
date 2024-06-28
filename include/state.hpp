@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include <string>
+#include <optional>
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
 #include <ImGuiFileBrowser.h>
-#include <optional>
 #include <natevolve.hpp>
 #include <wordup.hpp>
 
@@ -33,5 +34,8 @@ struct AppState {
     imgui_addons::ImGuiFileBrowser fileDialog;
     bool spawnNewFilePopup;
     bool spawnOpenFilePopup;
+
+    // Which category is being edited in the category maker
+    std::wstring selCat;
 };
 

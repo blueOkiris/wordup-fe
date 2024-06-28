@@ -700,7 +700,7 @@ void subwin::generate(AppState &state) {
     }
     ImGui::SameLine();
     if (ImGui::Button("-")) {
-        if (state.numSyllables > 0) {
+        if (state.numSyllables > 2) {
             state.numSyllables--;
         }
     }

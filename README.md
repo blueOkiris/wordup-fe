@@ -55,6 +55,6 @@ Run `make -j<num cpu processors>` (or `mingw32-make` on Windows)
 ### Via Docker
 
 ```
-docker build -t nonnixos-build nonnixos-build
+docker build --no-cache -t nonnixos-build nonnixos-build
 docker run --rm -v $(pwd):/output nonnixos-build
 ```

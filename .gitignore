@@ -7,4 +7,5 @@
 SFML/
 *.dll
 *.tar.gz
+*.zip
 

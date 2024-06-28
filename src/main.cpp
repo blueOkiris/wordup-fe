@@ -43,6 +43,7 @@ int main() {
         } else {
             subwin::ipaSelect(state);
             subwin::categoryMaker(state);
+            subwin::onsetMaker(state);
 
             // Must be last bc can erase fileName
             subwin::fileOpenedCanClose(state);

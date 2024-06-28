@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <sstream>
 #include <algorithm>
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -28,6 +29,7 @@
 static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 160);
 static const ImVec2 categoryPos(60, 220);
+static const ImVec2 onsetPos(60, 280);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
     "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",
@@ -390,7 +392,7 @@ void subwin::ipaSelect(AppState &state) {
 }
 
 void subwin::categoryMaker(AppState &state) {
-    ImGui::Begin("Categories", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin("Consonant Groupings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     if (!std::filesystem::exists("imgui.ini")) {
         // Give it a non-overlapping default pos
         ImGui::SetWindowPos(categoryPos);
@@ -488,6 +490,95 @@ void subwin::categoryMaker(AppState &state) {
             newCats,
             state.gen.value().vowels,
             state.gen.value().onsetOptions,
+            state.gen.value().codaOptions
+        };
+        newGen.toFile(state.fileName.value().c_str());
+        state.gen.emplace(newGen);
+    }
+
+    ImGui::End();
+}
+
+void subwin::onsetMaker(AppState &state) {
+    ImGui::Begin("Onsets", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (!std::filesystem::exists("imgui.ini")) {
+        // Give it a non-overlapping default pos
+        ImGui::SetWindowPos(onsetPos);
+        ImGui::SetWindowCollapsed(true);
+    }
+
+    if (state.gen.value().onsetOptions.size() > 1) {
+        for (size_t i = 1; i < state.gen.value().onsetOptions.size(); i++) {
+            bool changed = false;
+            auto onset = state.gen.value().onsetOptions[i];
+            for (size_t j = 0; j < onset.size(); j++) {
+                if (j != 0) {
+                    ImGui::SameLine();
+                }
+                ImGui::Text("%s", natevolve::fromWstr(onset[j]).c_str());
+            }
+            bool same = onset.size() > 0;
+            for (const auto &cat : state.gen.value().categories) {
+                if (!same) {
+                    same = true;
+                } else {
+                    ImGui::SameLine();
+                }
+                ImGui::PushID(i * 4);
+                if (ImGui::Button(("+" + natevolve::fromWstr(cat.first)).c_str())) {
+                    onset.push_back(cat.first);
+                    changed = true;
+                }
+                ImGui::PopID();
+            }
+            ImGui::SameLine();
+            ImGui::PushID(i * 4 + 1);
+            if (ImGui::Button("-")) {
+                onset.pop_back();
+                changed = true;
+            }
+            ImGui::PopID();
+            ImGui::SameLine();
+            ImGui::PushID(i * 4 + 2);
+            if (ImGui::Button("Remove")) {
+                auto onsets = state.gen.value().onsetOptions;
+                onsets.erase(onsets.begin() + i);
+                auto newGen = (natevolve::wordup::Generator) {
+                    state.gen.value().categories,
+                    state.gen.value().vowels,
+                    onsets,
+                    state.gen.value().codaOptions
+                };
+                newGen.toFile(state.fileName.value().c_str());
+                state.gen.emplace(newGen);
+            }
+            ImGui::PopID();
+            ImGui::PushID(i * 4 + 3);
+            if (changed) {
+                auto onsets = state.gen.value().onsetOptions;
+                onsets[i] = onset;
+                auto newGen = (natevolve::wordup::Generator) {
+                    state.gen.value().categories,
+                    state.gen.value().vowels,
+                    onsets,
+                    state.gen.value().codaOptions
+                };
+                newGen.toFile(state.fileName.value().c_str());
+                state.gen.emplace(newGen);
+            }
+            ImGui::PopID();
+        }
+    }
+
+    // -------- Onset Option --------
+
+    if (ImGui::Button("New Onset")) {
+        auto onsets = state.gen.value().onsetOptions;
+        onsets.push_back(std::vector<std::wstring>({ L"C" }));
+        auto newGen = (natevolve::wordup::Generator) {
+            state.gen.value().categories,
+            state.gen.value().vowels,
+            onsets,
             state.gen.value().codaOptions
         };
         newGen.toFile(state.fileName.value().c_str());

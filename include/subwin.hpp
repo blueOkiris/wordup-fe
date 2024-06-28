@@ -23,5 +23,8 @@ namespace subwin {
 
     // Show a window for grouping chosen sounds into categories
     void categoryMaker(AppState &state);
+
+    // Show a window for piecing together a series of consonant categories to make an onset
+    void onsetMaker(AppState &state);
 }
 

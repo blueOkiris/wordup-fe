@@ -6,4 +6,5 @@
 *.wu
 SFML/
 *.dll
+*.tar.gz
 

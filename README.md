@@ -6,6 +6,8 @@ NOTE: This project is currently in development
 
 A conlang word generator
 
+![screenshot](./screenshot.png)
+
 ## Usage
 
 There are three tabs:

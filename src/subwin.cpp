@@ -31,6 +31,7 @@ static const ImVec2 inventoryPos(60, 160);
 static const ImVec2 categoryPos(60, 220);
 static const ImVec2 onsetPos(60, 280);
 static const ImVec2 codaPos(60, 340);
+static const ImVec2 genPos(60, 400);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
     "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",
@@ -673,6 +674,56 @@ void subwin::codaMaker(AppState &state) {
         };
         newGen.toFile(state.fileName.value().c_str());
         state.gen.emplace(newGen);
+    }
+
+    ImGui::End();
+}
+
+void subwin::generate(AppState &state) {
+    ImGui::Begin("Generate", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (!std::filesystem::exists("imgui.ini")) {
+        // Give it a non-overlapping default pos
+        ImGui::SetWindowPos(genPos);
+        ImGui::SetWindowCollapsed(true);
+    }
+
+    ImGui::Text("Generated Word: ");
+    ImGui::SameLine();
+    ImGui::PushFont(global::fontCharisSil);
+    ImGui::Text("%ls", state.newWord.c_str());
+    ImGui::PopFont();
+
+    ImGui::Text("Num Syllables: %lu", state.numSyllables);
+    ImGui::SameLine();
+    if (ImGui::Button("+")) {
+        state.numSyllables++;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("-")) {
+        if (state.numSyllables > 0) {
+            state.numSyllables--;
+        }
+    }
+
+    if (ImGui::Button("Generate")) {
+        std::wstringstream newWord;
+        for (size_t i = 0; i < state.numSyllables; i++) {
+            const auto result = state.gen.value().generate();
+            if (natevolve::isErr(result)) {
+                state.errMessage.emplace(
+                    L"Failed to generate a new word. Err: " + natevolve::err(result).message
+                );
+                break;
+            } else {
+                if (newWord.str() != L"") {
+                    newWord << L".";
+                }
+                newWord << natevolve::ok(result);
+            }
+        }
+        if (!state.errMessage.has_value()) {
+            state.newWord = newWord.str();
+        }
     }
 
     ImGui::End();

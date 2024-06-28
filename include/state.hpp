@@ -37,5 +37,11 @@ struct AppState {
 
     // Which category is being edited in the category maker
     std::wstring selCat;
+
+    // How many syllables to generate
+    size_t numSyllables;
+
+    // The last word generated
+    std::wstring newWord;
 };
 

@@ -45,6 +45,7 @@ int main() {
             subwin::categoryMaker(state);
             subwin::onsetMaker(state);
             subwin::codaMaker(state);
+            subwin::generate(state);
 
             // Must be last bc can erase fileName
             subwin::fileOpenedCanClose(state);

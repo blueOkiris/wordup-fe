@@ -18,5 +18,7 @@ AppState::AppState():
     errMessage(std::nullopt),
     fileName(std::nullopt), gen(std::nullopt),
     fileDialog(), spawnNewFilePopup(false), spawnOpenFilePopup(false),
-    selCat(L"") {}
+    selCat(L""),
+    numSyllables(1),
+    newWord(L"Generated Word") {}
 

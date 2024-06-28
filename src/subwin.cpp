@@ -26,8 +26,8 @@
 #define IPA_VOWELS_NROWS    7
 
 static const ImVec2 canClosePos(60, 60);
-static const ImVec2 inventoryPos(60, 150);
-static const ImVec2 categoryPos(60, 210);
+static const ImVec2 inventoryPos(60, 160);
+static const ImVec2 categoryPos(60, 220);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
     "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",

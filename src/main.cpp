@@ -44,6 +44,7 @@ int main() {
             subwin::ipaSelect(state);
             subwin::categoryMaker(state);
             subwin::onsetMaker(state);
+            subwin::codaMaker(state);
 
             // Must be last bc can erase fileName
             subwin::fileOpenedCanClose(state);

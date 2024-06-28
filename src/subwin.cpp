@@ -30,6 +30,7 @@ static const ImVec2 canClosePos(60, 60);
 static const ImVec2 inventoryPos(60, 160);
 static const ImVec2 categoryPos(60, 220);
 static const ImVec2 onsetPos(60, 280);
+static const ImVec2 codaPos(60, 340);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
     "Retflex", "Palatl", "Velar", "Uvulr", "Phryg",
@@ -219,7 +220,7 @@ void subwin::fileOpenedCanClose(AppState &state) {
     }
     ImGui::Text("Name: %s", state.fileName.value().c_str());
     ImGui::SameLine();
-    ImGui::Separator();
+    ImGui::Spacing();
     ImGui::SameLine();
     bool closeFile = false;
     if (ImGui::Button("Close File")) {
@@ -580,6 +581,95 @@ void subwin::onsetMaker(AppState &state) {
             state.gen.value().vowels,
             onsets,
             state.gen.value().codaOptions
+        };
+        newGen.toFile(state.fileName.value().c_str());
+        state.gen.emplace(newGen);
+    }
+
+    ImGui::End();
+}
+
+void subwin::codaMaker(AppState &state) {
+    ImGui::Begin("Codas", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (!std::filesystem::exists("imgui.ini")) {
+        // Give it a non-overlapping default pos
+        ImGui::SetWindowPos(codaPos);
+        ImGui::SetWindowCollapsed(true);
+    }
+
+    if (state.gen.value().codaOptions.size() > 1) {
+        for (size_t i = 1; i < state.gen.value().codaOptions.size(); i++) {
+            bool changed = false;
+            auto coda = state.gen.value().codaOptions[i];
+            for (size_t j = 0; j < coda.size(); j++) {
+                if (j != 0) {
+                    ImGui::SameLine();
+                }
+                ImGui::Text("%s", natevolve::fromWstr(coda[j]).c_str());
+            }
+            bool same = coda.size() > 0;
+            for (const auto &cat : state.gen.value().categories) {
+                if (!same) {
+                    same = true;
+                } else {
+                    ImGui::SameLine();
+                }
+                ImGui::PushID(i * 4);
+                if (ImGui::Button(("+" + natevolve::fromWstr(cat.first)).c_str())) {
+                    coda.push_back(cat.first);
+                    changed = true;
+                }
+                ImGui::PopID();
+            }
+            ImGui::SameLine();
+            ImGui::PushID(i * 4 + 1);
+            if (ImGui::Button("-")) {
+                coda.pop_back();
+                changed = true;
+            }
+            ImGui::PopID();
+            ImGui::SameLine();
+            ImGui::PushID(i * 4 + 2);
+            if (ImGui::Button("Remove")) {
+                auto codas = state.gen.value().codaOptions;
+                codas.erase(codas.begin() + i);
+                auto newGen = (natevolve::wordup::Generator) {
+                    state.gen.value().categories,
+                    state.gen.value().vowels,
+                    state.gen.value().onsetOptions,
+                    codas
+                };
+                newGen.toFile(state.fileName.value().c_str());
+                state.gen.emplace(newGen);
+            }
+            ImGui::PopID();
+            ImGui::PushID(i * 4 + 3);
+            if (changed) {
+                auto codas = state.gen.value().codaOptions;
+                codas[i] = coda;
+                auto newGen = (natevolve::wordup::Generator) {
+                    state.gen.value().categories,
+                    state.gen.value().vowels,
+                    state.gen.value().onsetOptions,
+                    codas
+                };
+                newGen.toFile(state.fileName.value().c_str());
+                state.gen.emplace(newGen);
+            }
+            ImGui::PopID();
+        }
+    }
+
+    // -------- Onset Option --------
+
+    if (ImGui::Button("New Coda")) {
+        auto codas = state.gen.value().codaOptions;
+        codas.push_back(std::vector<std::wstring>({ L"C" }));
+        auto newGen = (natevolve::wordup::Generator) {
+            state.gen.value().categories,
+            state.gen.value().vowels,
+            state.gen.value().onsetOptions,
+            codas
         };
         newGen.toFile(state.fileName.value().c_str());
         state.gen.emplace(newGen);

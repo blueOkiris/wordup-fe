@@ -1,10 +1,10 @@
 # Wordup FE
 
+![screenshot](./screenshot.png)
+
 ## Description
 
 A conlang word generator
-
-![screenshot](./screenshot.png)
 
 ## Usage
 

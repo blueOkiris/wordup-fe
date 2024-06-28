@@ -48,3 +48,10 @@ Update the submodules: `git submodule update --init --recursive`
 
 Run `make -j<num cpu processors>` (or `mingw32-make` on Windows)
 
+### Via Docker
+
+```
+docker build -t nonnixos-build nonnixos-build
+docker run --rm -v $(pwd):/output nonnixos-build
+```
+

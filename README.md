@@ -8,17 +8,23 @@ A conlang word generator
 
 ## Usage
 
-There are three tabs:
+There are six tabs:
 
-1. Inventory
+1. File Menu
+   - Close the current file and go back to the open file menu
+2. Inventory
    - Displays an interactive IPA table
    - Select the sounds for your language
-2. Syllables
+3. Consonant Categories
    - Create custom groupings of consonants for use in defining syllable structure (∅ and C are automatically created for you)
-   - Select from these groupings to create options for onsets
-   - Select from these groupings to create options for codas
-3. Generate
-   - Use the data from the previous two tabs to generate a word
+   - Example: Group "N" for Nasals contains just /m n etc/ from your inventory
+4. Onset Maker
+   - Select from the consonant groupings to create options for onsets of syllables
+5. Coda Maker
+   - Select from the consonant groupings to create options for codas of syllables
+6. Generate
+   - Select the number of syllables to generate
+   - Use the data from the previous tabs to generate a new word
 
 ## Build
 

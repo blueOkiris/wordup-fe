@@ -6,6 +6,8 @@
 
 A conlang word generator
 
+Download the latest from the Releases section on the right
+
 ## Usage
 
 Tutorial Video:
@@ -31,6 +33,8 @@ There are six tabs:
    - Use the data from the previous tabs to generate a new word
 
 ## Build
+
+NOTE: You don't need to build! You can download a release!!! Linux users need only install SFML and Windows users can use the release directly!
 
 Dependencies:
 

@@ -693,7 +693,11 @@ void subwin::generate(AppState &state) {
     ImGui::Text("%ls", state.newWord.c_str());
     ImGui::PopFont();
 
+#ifdef _WIN32
+    ImGui::Text("Num Syllables: %llu", state.numSyllables);
+#else
     ImGui::Text("Num Syllables: %lu", state.numSyllables);
+#endif
     ImGui::SameLine();
     if (ImGui::Button("+")) {
         state.numSyllables++;

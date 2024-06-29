@@ -4,4 +4,5 @@
 #include <global.hpp>
 
 ImFont *global::fontCharisSil = nullptr;
+bool global::firstLaunch = false;
 

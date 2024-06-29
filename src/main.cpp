@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -62,6 +63,7 @@ int main() {
 
 // Initialize SFML and ImGui and various other tools and settings
 static void initSys(AppState &state) {
+    global::firstLaunch = !std::filesystem::exists("imgui.ini");
     state.win.setFramerateLimit(global::fps);
     if (!ImGui::SFML::Init(state.win, false)) {
         std::cout << "Failed to init SFML." << std::endl;

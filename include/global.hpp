@@ -3,6 +3,7 @@
 #pragma once
 
 #include <imgui.h>
+#include <subwin.hpp>
 
 namespace global {
     static const size_t width = 1280;
@@ -22,5 +23,6 @@ namespace global {
     };
 
     extern ImFont *fontCharisSil;
+    extern bool firstLaunch;
 }
 

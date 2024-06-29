@@ -19,6 +19,9 @@
 #include <subwin.hpp>
 #include <state.hpp>
 
+// For setting default positions
+#define SUBWIN_COUNT    8
+
 #define IPA_CONS_NCOLS      11
 #define IPA_CONS_NROWS      12
 #define IPA_BTN_WIDTH       15
@@ -26,11 +29,27 @@
 #define IPA_VOWELS_NCOLS    5
 #define IPA_VOWELS_NROWS    7
 
-static const ImVec2 canClosePos(60, 60);
-static const ImVec2 inventoryPos(60, 160);
-static const ImVec2 categoryPos(60, 220);
-static const ImVec2 onsetPos(60, 280);
-static const ImVec2 codaPos(60, 340);
+typedef enum {
+    SWID_ERR,
+    SWID_FOPEN,
+    SWID_CANCLOSE,
+    SWID_IPA_SEL,
+    SWID_CAT,
+    SWID_ONSET,
+    SWID_CODA,
+    SWID_GEN
+} subwin_id_t;
+
+static const ImVec2 defPoss[SUBWIN_COUNT] = {
+    ImVec2(60, 60),
+    ImVec2(60, 60),
+    ImVec2(60, 60),
+    ImVec2(60, 160),
+    ImVec2(60, 220),
+    ImVec2(60, 280),
+    ImVec2(60, 340),
+    ImVec2(60, 400)
+};
 static const ImVec2 genPos(60, 400);
 static const char *ipaConsColHdrs[IPA_CONS_NCOLS] = {
     "Bilab", "Lab-Den", "Dental", "Alveolr", "Post-Alv",
@@ -111,8 +130,15 @@ static const wchar_t *ipaVowels[IPA_VOWELS_NROWS][IPA_VOWELS_NCOLS][2] = {
     { { L"a", L"ɶ" },   { L"", L"" },   { L"", L"" },   { L"", L"" },   { L"ɑ", L"ɒ" } }
 };
 
+static bool firstLaunchHandled[SUBWIN_COUNT] = { 0 };
+
 void subwin::errorPopup(AppState &state) {
     ImGui::Begin("Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_ERR]) {
+        firstLaunchHandled[SWID_ERR] = true;
+        ImGui::SetWindowPos(defPoss[SWID_ERR]);
+        ImGui::SetWindowCollapsed(true);
+    }
     if (state.errMessage.has_value()) {
         ImGui::Text("Error: %ls\n", state.errMessage.value().c_str());
         if (ImGui::Button("Close")) {
@@ -125,6 +151,11 @@ void subwin::errorPopup(AppState &state) {
 void subwin::fileOpen(AppState &state) {
     // Need to open a file first
     ImGui::Begin("Choose File", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_FOPEN]) {
+        firstLaunchHandled[SWID_FOPEN] = true;
+        ImGui::SetWindowPos(defPoss[SWID_FOPEN]);
+        ImGui::SetWindowCollapsed(false);
+    }
 
     if (ImGui::Button("New File")) {
         state.spawnNewFilePopup = true;
@@ -216,8 +247,10 @@ void subwin::fileOpen(AppState &state) {
 
 void subwin::fileOpenedCanClose(AppState &state) {
     ImGui::Begin("Current File Opened", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        ImGui::SetWindowPos(canClosePos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_CANCLOSE]) {
+        firstLaunchHandled[SWID_CANCLOSE] = true;
+        ImGui::SetWindowPos(defPoss[SWID_CANCLOSE]);
+        ImGui::SetWindowCollapsed(false);
     }
     ImGui::Text("Name: %s", state.fileName.value().c_str());
     ImGui::SameLine();
@@ -237,9 +270,9 @@ void subwin::fileOpenedCanClose(AppState &state) {
 
 void subwin::ipaSelect(AppState &state) {
     ImGui::Begin("Inventory", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        // Give it a non-overlapping default pos
-        ImGui::SetWindowPos(inventoryPos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_IPA_SEL]) {
+        firstLaunchHandled[SWID_IPA_SEL] = true;
+        ImGui::SetWindowPos(defPoss[SWID_IPA_SEL]);
         ImGui::SetWindowCollapsed(true);
     }
 
@@ -395,9 +428,9 @@ void subwin::ipaSelect(AppState &state) {
 
 void subwin::categoryMaker(AppState &state) {
     ImGui::Begin("Consonant Groupings", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        // Give it a non-overlapping default pos
-        ImGui::SetWindowPos(categoryPos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_CAT]) {
+        firstLaunchHandled[SWID_CAT] = true;
+        ImGui::SetWindowPos(defPoss[SWID_CAT]);
         ImGui::SetWindowCollapsed(true);
     }
 
@@ -503,9 +536,9 @@ void subwin::categoryMaker(AppState &state) {
 
 void subwin::onsetMaker(AppState &state) {
     ImGui::Begin("Onsets", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        // Give it a non-overlapping default pos
-        ImGui::SetWindowPos(onsetPos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_ONSET]) {
+        firstLaunchHandled[SWID_ONSET] = true;
+        ImGui::SetWindowPos(defPoss[SWID_ONSET]);
         ImGui::SetWindowCollapsed(true);
     }
 
@@ -592,9 +625,9 @@ void subwin::onsetMaker(AppState &state) {
 
 void subwin::codaMaker(AppState &state) {
     ImGui::Begin("Codas", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        // Give it a non-overlapping default pos
-        ImGui::SetWindowPos(codaPos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_CODA]) {
+        firstLaunchHandled[SWID_CODA] = true;
+        ImGui::SetWindowPos(defPoss[SWID_CODA]);
         ImGui::SetWindowCollapsed(true);
     }
 
@@ -681,9 +714,9 @@ void subwin::codaMaker(AppState &state) {
 
 void subwin::generate(AppState &state) {
     ImGui::Begin("Generate", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-    if (!std::filesystem::exists("imgui.ini")) {
-        // Give it a non-overlapping default pos
-        ImGui::SetWindowPos(genPos);
+    if (global::firstLaunch && !firstLaunchHandled[SWID_GEN]) {
+        firstLaunchHandled[SWID_GEN] = true;
+        ImGui::SetWindowPos(defPoss[SWID_GEN]);
         ImGui::SetWindowCollapsed(true);
     }
 
